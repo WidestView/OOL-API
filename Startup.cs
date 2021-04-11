@@ -30,6 +30,13 @@ namespace OOL_API
             services.AddDbContext<StudioContext>(options =>
                 options.UseMySQL(Configuration.GetConnectionString("DefaultConnection")));
 
+            string[] allowed_urls = Configuration.GetSection("AllowedCorsUrls").Get<List<string>>().ToArray();
+
+            services.AddCors(options => options.AddPolicy("ApiCorsPolicy", builder =>
+            {
+                builder.WithOrigins(allowed_urls).AllowAnyMethod().AllowAnyHeader();
+            }));
+
             services.AddControllers();
 
             services.AddSwaggerGen(c =>
@@ -56,6 +63,8 @@ namespace OOL_API
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors("ApiCorsPolicy");
 
             app.UseSwagger();
 
