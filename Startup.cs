@@ -74,6 +74,8 @@ namespace OOL_API
                 c.RoutePrefix = string.Empty;
             });
 
+            app.UseStaticFiles();
+
             app.UseRouting();
 
             app.UseAuthorization();
