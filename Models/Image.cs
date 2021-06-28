@@ -9,7 +9,7 @@ namespace OOL_API.Models
     public class Image
     {
         public Guid ID { get; set; }
-        public string Path {get; set;}
+        public string File {get; set;}
         public int OwnerID { get; set; }
     }
 }
