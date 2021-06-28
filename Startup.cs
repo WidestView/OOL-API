@@ -1,17 +1,14 @@
+using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using OOL_API.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using OOL_API.Services;
 
 namespace OOL_API
 {
@@ -27,18 +24,19 @@ namespace OOL_API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<StudioContext>(options =>
-                options.UseMySQL(Configuration.GetConnectionString("DefaultConnection")));
+            ConfigureDatabase(services);
 
-            string[] allowed_urls = Configuration.GetSection("AllowedCorsUrls").Get<List<string>>().ToArray();
+            ConfigureCors(services);
 
-            services.AddCors(options => options.AddPolicy("ApiCorsPolicy", builder =>
-            {
-                builder.WithOrigins(allowed_urls).AllowAnyMethod().AllowAnyHeader();
-            }));
-
+            ConfigureSwagger(services);
+            
             services.AddControllers();
+            
+            services.AddSingleton<IPictureManager, DirectoryPictureManager>();
+        }
 
+        private static void ConfigureSwagger(IServiceCollection services)
+        {
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -54,6 +52,20 @@ namespace OOL_API
                     }
                 });
             });
+        }
+
+        private void ConfigureDatabase(IServiceCollection services)
+        {
+            services.AddDbContext<StudioContext>(options =>
+                options.UseMySQL(Configuration.GetConnectionString("DefaultConnection")));
+        }
+
+        private void ConfigureCors(IServiceCollection services)
+        {
+            string[] allowedUrls = Configuration.GetSection("AllowedCorsUrls").Get<List<string>>().ToArray();
+
+            services.AddCors(options => options.AddPolicy("ApiCorsPolicy",
+                builder => { builder.WithOrigins(allowedUrls).AllowAnyMethod().AllowAnyHeader(); }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

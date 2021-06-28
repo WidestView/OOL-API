@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
@@ -17,9 +15,7 @@ namespace OOL_API.Controllers
         private readonly StudioContext _context;
 
         public ProductsController(StudioContext context)
-        {
-            _context = context;
-        }
+        => _context = context;
 
         // GET: api/Products
         [HttpGet]
