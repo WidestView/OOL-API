@@ -35,7 +35,8 @@ namespace OOL_API.Controllers
             return image; //TODO: MAKE IT RETURN THE IMAGE FILE
         }
 
-        // GET: api/Images/GetData/{id}
+        // GET: api/Images/{id}/data
+        [HttpGet("{id:guid}/data")]
         public async Task<ActionResult<Image>> GetData(Guid id)
         {
             var image = await _context.Images.FindAsync(id);

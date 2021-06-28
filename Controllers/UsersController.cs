@@ -35,18 +35,19 @@ namespace OOL_API.Controllers
             return user;
         }
 
-        // GET: api/User/GetAllImages/{id}
+        // GET: api/User/{id}/allImagesIds
         // TODO: REMOVE BECAUSE OF SECURITY RISKS
+        [HttpGet("{id:int}/allImagesIds")]
         public async Task<ActionResult<IEnumerable<Image>>> GetAllImages(int id)
         {
-            var images = await _context.Images.Any(i => i.OwnerID == id);
+            var images = _context.Images.Where(i => i.OwnerID == id).ToList();
 
             if (images == null)
             {
                 return NotFound();
             }
 
-            return images;
+            return images.Select(i => i.ID);
         }
 
         private bool UserExists(int id)

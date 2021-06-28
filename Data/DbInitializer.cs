@@ -46,8 +46,8 @@ namespace OOL_API.Data
 
             var images = new Image[]
             {
-                new Image{ OwnerID = users.Single( u => u.Name == "Adm").ID },
-                new Image{ OwnerID = users.Single( u => u.Name == "Adm").ID }
+                new Image{ Path = "1.jpg", OwnerID = users.Single( u => u.Name == "Adm").ID },
+                new Image{ Path = "2.jpg", OwnerID = users.Single( u => u.Name == "Adm").ID }
             };
 
             foreach (Image i in images)
