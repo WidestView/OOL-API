@@ -21,7 +21,7 @@ namespace OOL_API.Controllers
             _context = context;
         }
 
-        // GET: api/User/5
+        // GET: api/User/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -33,6 +33,20 @@ namespace OOL_API.Controllers
             }
 
             return user;
+        }
+
+        // GET: api/User/GetAllImages/{id}
+        // TODO: REMOVE BECAUSE OF SECURITY RISKS
+        public async Task<ActionResult<IEnumerable<Image>>> GetAllImages(int id)
+        {
+            var images = await _context.Images.Any(i => i.OwnerID == id);
+
+            if (images == null)
+            {
+                return NotFound();
+            }
+
+            return images;
         }
 
         private bool UserExists(int id)

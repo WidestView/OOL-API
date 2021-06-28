@@ -13,12 +13,6 @@ namespace OOL_API.Data
             context.Database.EnsureDeleted(); //DROP DATABASE
             context.Database.EnsureCreated();
 
-            InitializeProducts(context);
-            InitializeUsers(context);
-        }
-
-        private static void InitializeProducts(StudioContext context)
-        {
             // Look for any products.
             if (context.Products.Any())
             {
@@ -36,14 +30,7 @@ namespace OOL_API.Data
                 context.Products.Add(p);
             }
             context.SaveChanges();
-        }
 
-        private static void InitializeUsers(StudioContext context)
-        {
-            if (context.Users.Any())
-            {
-                return;
-            }
 
             var users = new User[]
             {
@@ -53,6 +40,19 @@ namespace OOL_API.Data
             foreach (User u in users)
             {
                 context.Users.Add(u);
+            }
+            context.SaveChanges();
+
+
+            var images = new Image[]
+            {
+                new Image{ OwnerID = users.Single( u => u.Name == "Adm").ID },
+                new Image{ OwnerID = users.Single( u => u.Name == "Adm").ID }
+            };
+
+            foreach (Image i in images)
+            {
+                context.Images.Add(i);
             }
             context.SaveChanges();
         }

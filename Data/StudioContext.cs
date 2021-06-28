@@ -16,6 +16,7 @@ namespace OOL_API.Data
 
         public DbSet<Product> Products { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Image> Images { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +24,7 @@ namespace OOL_API.Data
 
             modelBuilder.Entity<Product>().ToTable("Product");
             modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<Image>().ToTable("Images");
         }
     }
 }
