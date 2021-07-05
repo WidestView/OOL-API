@@ -366,3 +366,5 @@ FodyWeavers.xsd
 wwwroot/res/*
 
 Images
+
+.idea
