@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 namespace OOL_API.Data
 {
     public class DbInitializer
-    {
+    {   
         public static void Initialize(StudioContext context)
         {
+            context.Database.EnsureDeleted(); //DROP DATABASE
             context.Database.EnsureCreated();
 
-            // Look for any students.
+            // Look for any products.
             if (context.Products.Any())
             {
                 return;   // DB has been seeded
@@ -27,6 +28,31 @@ namespace OOL_API.Data
             foreach (Product p in products)
             {
                 context.Products.Add(p);
+            }
+            context.SaveChanges();
+
+
+            var users = new User[]
+            {
+                new User{ Name="Adm"}
+            };
+
+            foreach (User u in users)
+            {
+                context.Users.Add(u);
+            }
+            context.SaveChanges();
+
+
+            var images = new Image[]
+            {
+                new Image{ File = "1.jpg", OwnerID = users.Single( u => u.Name == "Adm").ID },
+                new Image{ File = "2.jpg", OwnerID = users.Single( u => u.Name == "Adm").ID }
+            };
+
+            foreach (Image i in images)
+            {
+                context.Images.Add(i);
             }
             context.SaveChanges();
         }
