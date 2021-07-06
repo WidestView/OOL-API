@@ -1,8 +1,6 @@
-﻿using OOL_API.Models;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
+using OOL_API.Models;
 
 namespace OOL_API.Data
 {
@@ -19,7 +17,7 @@ namespace OOL_API.Data
                 return;   // DB has been seeded
             }
 
-            var products = new Product[]
+            var products = new[]
             {
                 new Product{ Name="Pacote Premium", Description="Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!", Price=20.00m },
                 new Product{ Name="Pacote Extra Premium", Description="Pacote que contém tanto o ensaio fotográfico com disponibilidade digital mas também a revelação de todas fotos em um albúm de alta qualidade!", Price=25.00m }
@@ -29,31 +27,34 @@ namespace OOL_API.Data
             {
                 context.Products.Add(p);
             }
+
+            var shoots = new[]
+            {
+                new PhotoShoot
+                {
+                    Address = "localhost avenue",
+                    Duration = TimeSpan.FromHours(1),
+                    OrderId = 10,
+                },
+
+                new PhotoShoot
+                {
+                    Address = "127001 street",
+                    Duration = TimeSpan.FromHours(1),
+                    OrderId = 10,
+                },
+            };
+
+            foreach (var photoShoot in shoots)
+            {
+                context.PhotoShoots.Add(photoShoot);
+            }
+            
             context.SaveChanges();
 
 
-            var users = new User[]
-            {
-                new User{ Name="Adm"}
-            };
-
-            foreach (User u in users)
-            {
-                context.Users.Add(u);
-            }
             context.SaveChanges();
-
-
-            var images = new Image[]
-            {
-                new Image{ File = "1.jpg", OwnerID = users.Single( u => u.Name == "Adm").ID },
-                new Image{ File = "2.jpg", OwnerID = users.Single( u => u.Name == "Adm").ID }
-            };
-
-            foreach (Image i in images)
-            {
-                context.Images.Add(i);
-            }
+            
             context.SaveChanges();
         }
     }
