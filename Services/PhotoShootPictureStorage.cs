@@ -27,8 +27,8 @@ namespace OOL_API.Services
             _context = context;
         }
 
-        public IEnumerable<string> ListIdentifiers() 
-            => _context.PhotoShootImages.Select(image => image.Id.ToString());
+        public IEnumerable<Guid> ListIdentifiers() 
+            => _context.PhotoShootImages.Select(image => image.Id);
 
         public byte[] GetPicture(Guid identifier)
         {

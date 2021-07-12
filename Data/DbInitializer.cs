@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Configuration;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
 using OOL_API.Models;
 
 namespace OOL_API.Data
@@ -9,7 +7,7 @@ namespace OOL_API.Data
     public class DbInitializer
     {
         // todo: move to configuration
-        private static readonly bool ResetDatabase = false;
+        private static readonly bool ResetDatabase = true;
         
         public static void Initialize(StudioContext context)
         {

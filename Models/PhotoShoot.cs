@@ -25,6 +25,6 @@ namespace OOL_API.Models
         
         public TimeSpan Duration { get; set; }
         
-        public List<PhotoShootImage> Images { get; set; }
+        public List<PhotoShootImage> PhotoShootImages { get; set; }
     }
 }
