@@ -28,19 +28,21 @@ namespace OOL_API.Services
         public IEnumerable<string> ListIdentifiers() 
             => _context.PhotoShootImages.Select(image => image.Id.ToString());
 
-        public byte[] GetPicture(string identifier)
+        public byte[] GetPicture(Guid identifier)
         {
             var image = _context.PhotoShootImages.Find(identifier);
-            
+
             if (image != null)
             {
+                var path = ResolveImagePath(image.Id.ToString());
+                
                 try
                 {
-                    return File.ReadAllBytes(ResolveImagePath(image.Id.ToString()));
+                    return File.ReadAllBytes(path);
                 }
                 catch (FileNotFoundException)
                 {
-                    Console.WriteLine($"File {identifier} recognized but not found");
+                    Console.WriteLine($"File {path} recognized but not found");
                 }
             }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +10,7 @@ using OOL_API.Services;
 
 namespace OOL_API.Controllers
 {
+    [Route("photoshoot")]
     public class PhotoShootController : Controller
     {
         // todo: use proper url retrieval method
@@ -26,9 +28,8 @@ namespace OOL_API.Controllers
 
         // todo: remove this on production
         
-        // GET: api/photoshoot/images
-        [Route("photoshoot/images")]
-        public IActionResult ListAll()
+        [HttpGet("images")]
+        public IActionResult ListImages()
             => Json(_pictureManager.ListIdentifiers().Select(id =>
                 new
                 {
@@ -37,14 +38,14 @@ namespace OOL_API.Controllers
                 }
             ));
 
-        [Route("photoshoot/imagedata/{id}")]
+        [HttpGet("imagedata/{id}")]
         public IActionResult GetImageData(string id)
         {
             throw new NotImplementedException();
         }
 
-        [Route("photoshoot/image/{id}")]
-        public IActionResult GetContent(string id)
+        [HttpGet("image/{id}")]
+        public IActionResult GetImageContent(Guid id)
         {
             var content = _pictureManager.GetPicture(id);
 
@@ -56,9 +57,8 @@ namespace OOL_API.Controllers
             return NotFound();
         }
         
-        [Route("photoshoot/upload/{photoShootResourceId}")]
-        [HttpPost]
-        public IActionResult Add(Guid photoShootResourceId, [FromForm] IFormFile file)
+        [HttpPost("upload/{photoShootResourceId}")]
+        public IActionResult UploadImage(Guid photoShootResourceId, [FromForm] IFormFile file)
         {
             if (file?.ContentType != "image/jpeg")
             {
@@ -81,6 +81,8 @@ namespace OOL_API.Controllers
 
             _context.PhotoShootImages.Add(image);
 
+            _context.SaveChanges();
+
             Debug.Assert(image.Id != Guid.Empty);
 
             using var stream = file.OpenReadStream();
@@ -88,6 +90,40 @@ namespace OOL_API.Controllers
             _pictureManager.PostPicture(stream, image);
 
             return Json(new { id = image.Id.ToString() });
+        }
+
+        [HttpGet]
+        public ActionResult<IEnumerable<PhotoShoot>> ListAll()
+        {
+            return _context.PhotoShoots;
+        }
+        
+        [HttpGet("{id}")]
+        public IActionResult GetById(Guid id)
+        {
+            var result = _context
+                .PhotoShoots
+                .FirstOrDefault(shoot => shoot.ResourceId == id);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Json(result);
+        }
+
+        [HttpPost("add")]
+        public IActionResult Add(PhotoShoot shoot)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.PhotoShoots.Add(shoot);
+
+                return CreatedAtAction("GetById", new {id = shoot.ResourceId});
+            }
+
+            return StatusCode(400);
         }
     }
 }
