@@ -1,15 +1,23 @@
 ﻿using System;
+using System.Configuration;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 using OOL_API.Models;
 
 namespace OOL_API.Data
 {
     public class DbInitializer
-    {   
+    {
+        // todo: move to configuration
+        private static readonly bool ResetDatabase = false;
+        
         public static void Initialize(StudioContext context)
         {
-            context.Database.EnsureDeleted(); //DROP DATABASE
-            context.Database.EnsureCreated();
+            if (ResetDatabase)
+            {
+                context.Database.EnsureDeleted(); //DROP DATABASE
+                context.Database.EnsureCreated();
+            }
 
             // Look for any products.
             if (context.Products.Any())
@@ -49,11 +57,6 @@ namespace OOL_API.Data
             {
                 context.PhotoShoots.Add(photoShoot);
             }
-            
-            context.SaveChanges();
-
-
-            context.SaveChanges();
             
             context.SaveChanges();
         }
