@@ -32,7 +32,7 @@ namespace OOL_API
             
             services.AddControllers();
             
-            services.AddScoped<PhotoShootPictureManager, PhotoShootPictureManager>();
+            services.AddScoped<PhotoShootPictureStorage, PhotoShootPictureStorage>();
         }
 
         private static void ConfigureSwagger(IServiceCollection services)

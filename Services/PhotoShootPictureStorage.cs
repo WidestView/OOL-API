@@ -8,19 +8,21 @@ using OOL_API.Models;
 
 namespace OOL_API.Services
 {
-    public class PhotoShootPictureManager
+    public class PhotoShootPictureStorage
     {
         private readonly IWebHostEnvironment _environment;
         
         private readonly StudioContext _context;
 
-        private readonly string _directory = "Images";
+        private readonly string _directory;
 
-        public PhotoShootPictureManager(
+        public PhotoShootPictureStorage(
             StudioContext context,
-            IWebHostEnvironment environment
+            IWebHostEnvironment environment,
+            string directory = "Images"
         )
         {
+            _directory = directory;
             _environment = environment;
             _context = context;
         }

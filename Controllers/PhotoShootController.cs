@@ -16,21 +16,21 @@ namespace OOL_API.Controllers
         // todo: use proper url retrieval method
         private const string ApiUrl = "http://localhost:5000";
 
-        private readonly PhotoShootPictureManager _pictureManager;
+        private readonly PhotoShootPictureStorage _pictureStorage;
 
         private readonly StudioContext _context;
 
         public PhotoShootController(
-            PhotoShootPictureManager pictureManager,
+            PhotoShootPictureStorage pictureStorage,
             StudioContext context
         )
-            => (_pictureManager, _context) = (pictureManager, context);
+            => (_pictureStorage, _context) = (pictureStorage, context);
 
         // todo: remove this on production
         
         [HttpGet("images")]
         public IActionResult ListImages()
-            => Json(_pictureManager.ListIdentifiers().Select(id =>
+            => Json(_pictureStorage.ListIdentifiers().Select(id =>
                 new
                 {
                     id,
@@ -47,7 +47,7 @@ namespace OOL_API.Controllers
         [HttpGet("image/{id}")]
         public IActionResult GetImageContent(Guid id)
         {
-            var content = _pictureManager.GetPicture(id);
+            var content = _pictureStorage.GetPicture(id);
 
             if (content != null)
             {
@@ -87,7 +87,7 @@ namespace OOL_API.Controllers
 
             using var stream = file.OpenReadStream();
             
-            _pictureManager.PostPicture(stream, image);
+            _pictureStorage.PostPicture(stream, image);
 
             return Json(new { id = image.Id.ToString() });
         }
