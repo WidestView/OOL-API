@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
-using OOL_API.Models;
+using OOL_API.Models.DataTransfer;
 
 namespace OOL_API.Controllers
 {
@@ -19,9 +17,11 @@ namespace OOL_API.Controllers
 
 
         [HttpGet]
-        public ActionResult<IEnumerable<PhotoShoot>> ListAll()
+        public IActionResult ListAll()
         {
-            return _context.PhotoShoots;
+            return Json(
+                _context.PhotoShoots.Select(shoot => new OutputPhotoShoot(shoot, false))
+            );
         }
 
         [HttpGet("{id}")]
@@ -29,6 +29,7 @@ namespace OOL_API.Controllers
         {
             var result = _context
                 .PhotoShoots
+                .Include(shot => shot.Images)
                 .FirstOrDefault(shoot => shoot.ResourceId == id);
 
             if (result == null)
@@ -36,42 +37,16 @@ namespace OOL_API.Controllers
                 return NotFound();
             }
 
-            return Json(result);
-        }
-
-        public class PhotoshootInput
-        {
-            [Required]
-            public int OrderId { get; set; }
-
-            [Required]
-            public string Address { get; set; }
-
-            [Required]
-            public DateTime Start { get; set; }
-
-            [Required]
-            public uint DurationMinutes { get; set; }
-
-            public PhotoShoot ToPhotoShoot()
-            {
-                return new PhotoShoot
-                {
-                    Address = Address,
-                    Duration = TimeSpan.FromMinutes(DurationMinutes),
-                    OrderId = OrderId,
-                    Start = Start
-                };
-            } 
+            return Json(new OutputPhotoShoot(result, true));
         }
 
         [HttpPost("add")]
-        public IActionResult Add([FromBody] PhotoshootInput input)
+        public IActionResult Add([FromBody] InputPhotoShoot input)
         {
             if (ModelState.IsValid)
             {
                 var shot = input.ToPhotoShoot();
-                
+
                 _context.PhotoShoots.Add(shot);
 
                 _context.SaveChanges();

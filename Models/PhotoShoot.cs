@@ -9,7 +9,6 @@ namespace OOL_API.Models
     public class PhotoShoot
     {
         [Key]
-        [JsonIgnore]
         public int Id { get; set; }
         
         // [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
@@ -19,12 +18,13 @@ namespace OOL_API.Models
         
         public int OrderId { get; set; }
         
+        [Required]
         public string Address { get; set; }
         
         public DateTime Start { get; set; }
         
         public TimeSpan Duration { get; set; }
         
-        public List<PhotoShootImage> PhotoShootImages { get; set; }
+        public List<PhotoShootImage> Images { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace OOL_API.Data
     public class DbInitializer
     {
         // todo: move to configuration
-        private static readonly bool ResetDatabase = true;
+        private static readonly bool ResetDatabase = false;
         
         public static void Initialize(StudioContext context)
         {
@@ -41,6 +41,7 @@ namespace OOL_API.Data
                     Address = "localhost avenue",
                     Duration = TimeSpan.FromHours(1),
                     OrderId = 10,
+                    ResourceId = Guid.Parse("5a60a77f-e51b-4aa6-7b3c-08d94570814c")
                 },
 
                 new PhotoShoot

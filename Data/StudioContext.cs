@@ -21,8 +21,14 @@ namespace OOL_API.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Product>().ToTable("Product");
-            modelBuilder.Entity<PhotoShootImage>().ToTable("PhotoShootImage");
             modelBuilder.Entity<PhotoShoot>().ToTable("PhotoShoot");
+            
+            modelBuilder.Entity<PhotoShootImage>()
+                .ToTable("PhotoShootImage")
+                .HasOne(image => image.PhotoShoot)
+                .WithMany(shot => shot.Images)
+                .HasForeignKey(image => image.PhotoShootId)
+                .IsRequired();
         }
     }
 }
