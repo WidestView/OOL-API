@@ -51,7 +51,9 @@ namespace OOL_API.Controllers
 
                 _context.SaveChanges();
 
-                return CreatedAtAction("GetById", new {id = shot.ResourceId}, shot);
+                var output = new OutputPhotoShoot(shot, true);
+
+                return CreatedAtAction("GetById", new {id = shot.ResourceId}, output);
             }
 
             return new BadRequestObjectResult(ModelState);
