@@ -13,7 +13,9 @@ namespace OOL_API.Models.DataTransfer
         public OutputPhotoShootImage(PhotoShootImage image, bool withReferences)
         {
             Id = image.Id;
-            PhotoShoot = withReferences ? new OutputPhotoShoot(image.PhotoShoot, false) : null;
+            PhotoShoot = withReferences && image.PhotoShoot != null 
+                ? new OutputPhotoShoot(image.PhotoShoot, false) 
+                : null;
             OnPortfolio = image.OnPortfolio;
         }
     }
