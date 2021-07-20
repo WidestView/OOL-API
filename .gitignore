@@ -365,7 +365,6 @@ FodyWeavers.xsd
 # Public images for products, users...
 wwwroot/res/*
 
-Images/*.jpg
-Images/*.jpeg
+Images
 
 .idea
