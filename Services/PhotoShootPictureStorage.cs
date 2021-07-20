@@ -19,10 +19,10 @@ namespace OOL_API.Services
         public PhotoShootPictureStorage(
             StudioContext context,
             IWebHostEnvironment environment,
-            string directory = "Images\\Photoshoot_Images"
+            string directory = null
         )
         {
-            _directory = directory;
+            _directory = directory ?? Path.Join("Images", "Photoshoot_Images").ToString();
             _environment = environment;
             _context = context;
         }
