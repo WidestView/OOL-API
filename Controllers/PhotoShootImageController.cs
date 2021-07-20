@@ -11,7 +11,8 @@ using OOL_API.Services;
 
 namespace OOL_API.Controllers
 {
-    [Route("photoshoot/images")]
+    [Route("api/[controller]")]
+    [ApiController]
     public class PhotoShootImageController : Controller
     {
         // todo: use proper url retrieval method

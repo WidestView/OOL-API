@@ -18,20 +18,40 @@ namespace OOL_API.Data
             }
 
             // Look for any products.
-            if (context.Products.Any())
+            if (context.Packages.Any())
             {
                 return;   // DB has been seeded
             }
 
-            var products = new[]
+            var packages = new[]
             {
-                new Product{ Name="Pacote Premium", Description="Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!", Price=20.00m },
-                new Product{ Name="Pacote Extra Premium", Description="Pacote que contém tanto o ensaio fotográfico com disponibilidade digital mas também a revelação de todas fotos em um albúm de alta qualidade!", Price=25.00m }
+                new Package{
+                    Name = "Premium",
+                    Description = "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
+                    BaseValue = 50.00m,
+                    PricePerPhoto = 5.00m,
+                    ImageQuantity = null,
+                    QuantityMultiplier = 25,
+                    MaxIterations = 5,
+                    Image = "batata.jpg",
+                    Available = true
+                },
+                new Package{
+                    Name = "Você Modelo!",
+                    Description = "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
+                    BaseValue = 200.0m,
+                    PricePerPhoto = 0.00m,
+                    ImageQuantity = 200,
+                    QuantityMultiplier = null,
+                    MaxIterations = null,
+                    Image = "batata.jpg",
+                    Available = true
+                }
             };
 
-            foreach (Product p in products)
+            foreach (Package p in packages)
             {
-                context.Products.Add(p);
+                context.Packages.Add(p);
             }
 
             var shoots = new[]

@@ -10,7 +10,7 @@ namespace OOL_API.Data
         {
         }
 
-        public DbSet<Product> Products { get; set; }
+        public DbSet<Package> Packages { get; set; }
         
         public DbSet<PhotoShootImage> PhotoShootImages { get; set; }
         
@@ -20,7 +20,7 @@ namespace OOL_API.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Product>().ToTable("Product");
+            modelBuilder.Entity<Package>().ToTable("Package");
             modelBuilder.Entity<PhotoShoot>().ToTable("PhotoShoot");
             
             modelBuilder.Entity<PhotoShootImage>()

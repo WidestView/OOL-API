@@ -7,7 +7,8 @@ using OOL_API.Models.DataTransfer;
 
 namespace OOL_API.Controllers
 {
-    [Route("photoshoot")]
+    [Route("api/[controller]")]
+    [ApiController]
     public class PhotoShootController : Controller
     {
         private readonly StudioContext _context;
