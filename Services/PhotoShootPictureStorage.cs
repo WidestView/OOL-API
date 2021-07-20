@@ -19,7 +19,7 @@ namespace OOL_API.Services
         public PhotoShootPictureStorage(
             StudioContext context,
             IWebHostEnvironment environment,
-            string directory = "Images"
+            string directory = "Images\\Photoshoot_Images"
         )
         {
             _directory = directory;
@@ -63,6 +63,6 @@ namespace OOL_API.Services
         }
 
         private string ResolveImagePath(string image)
-            => Path.Combine(_environment.ContentRootPath, $"{_directory}/{image}.jpg");
+            => Path.Combine(_environment.ContentRootPath, $"{_directory}\\{image}.jpg");
     }
 }

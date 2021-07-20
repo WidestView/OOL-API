@@ -33,7 +33,6 @@ namespace OOL_API.Data
                     ImageQuantity = null,
                     QuantityMultiplier = 25,
                     MaxIterations = 5,
-                    Image = "batata.jpg",
                     Available = true
                 },
                 new Package{
@@ -44,7 +43,6 @@ namespace OOL_API.Data
                     ImageQuantity = 200,
                     QuantityMultiplier = null,
                     MaxIterations = null,
-                    Image = "batata.jpg",
                     Available = true
                 }
             };

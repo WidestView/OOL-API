@@ -19,7 +19,6 @@ namespace OOL_API.Models
         public int? ImageQuantity { get; set; }
         public int? QuantityMultiplier { get; set; }
         public int? MaxIterations { get; set; }
-        public string Image { get; set; }
         public bool Available { get; set; }
 
     }

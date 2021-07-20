@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 using OOL_API.Models;
+using OOL_API.Services;
 
 namespace OOL_API.Controllers
 {
@@ -14,8 +15,10 @@ namespace OOL_API.Controllers
     {
         private readonly StudioContext _context;
 
-        public PackageController(StudioContext context)
-        => _context = context;
+        private readonly PackagePictureStorage _pictureStorage;
+
+        public PackageController(StudioContext context, PackagePictureStorage pictureStorage)
+        => (_context, _pictureStorage) = (context, pictureStorage);
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Package>>> GetProducts()
@@ -34,6 +37,19 @@ namespace OOL_API.Controllers
             }
 
             return package;
+        }
+
+        [HttpGet("{id}/image")]
+        public IActionResult GetImageContent(int id)
+        {
+            var content = _pictureStorage.GetPicture(id);
+
+            if (content != null)
+            {
+                return File(content, "image/jpeg");
+            }
+
+            return NotFound();
         }
 
         [HttpPost]
