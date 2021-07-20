@@ -17,7 +17,7 @@ namespace OOL_API.Data
                 context.Database.EnsureCreated();
             }
 
-            // Look for any products.
+            // Look for any packages.
             if (context.Packages.Any())
             {
                 return;   // DB has been seeded
@@ -29,7 +29,7 @@ namespace OOL_API.Data
                     Name = "Premium",
                     Description = "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
                     BaseValue = 50.00m,
-                    PricePerPhoto = 5.00m,
+                    PricePerPhoto = 2.50m,
                     ImageQuantity = null,
                     QuantityMultiplier = 25,
                     MaxIterations = 5,
