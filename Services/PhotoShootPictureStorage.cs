@@ -37,7 +37,7 @@ namespace OOL_API.Services
             if (image != null)
             {
                 var path = ResolveImagePath(image.Id.ToString());
-                
+
                 try
                 {
                     return File.ReadAllBytes(path);
@@ -45,6 +45,10 @@ namespace OOL_API.Services
                 catch (FileNotFoundException)
                 {
                     Console.WriteLine($"File {path} recognized but not found");
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    Console.WriteLine($"Directory solicited for {path} not found");
                 }
             }
 

@@ -46,6 +46,10 @@ namespace OOL_API.Services
                 {
                     Console.WriteLine($"File {path} recognized but not found");
                 }
+                catch (DirectoryNotFoundException)
+                {
+                    Console.WriteLine($"Directory solicited for {path} not found");
+                }
             }
 
             return null;
