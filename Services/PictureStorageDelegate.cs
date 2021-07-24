@@ -4,7 +4,12 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace OOL_API.Services
 {
-    public class DirectoryPictureStorageDelegate : IPictureStorageDelegate
+    public interface IPictureStorageDelegate : IPictureStorage<string, string>
+    {
+        public string Directory { set; }
+    }
+
+    public class PictureStorageDelegate : IPictureStorageDelegate
     {
         private readonly IWebHostEnvironment _environment;
 
@@ -12,11 +17,10 @@ namespace OOL_API.Services
 
         public string Directory
         {
-            get => _directory;
             set => _directory = Path.Join("Images", value);
         }
 
-        public DirectoryPictureStorageDelegate(IWebHostEnvironment environment)
+        public PictureStorageDelegate(IWebHostEnvironment environment)
             => _environment = environment;
 
         public byte[] GetPicture(string id)

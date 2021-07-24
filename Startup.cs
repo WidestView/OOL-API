@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using OOL_API.Data;
 using OOL_API.Models;
 using OOL_API.Services;
+using static OOL_API.Services.PictureStorageFactory;
 
 namespace OOL_API
 {
@@ -30,12 +31,26 @@ namespace OOL_API
             ConfigureCors(services);
 
             ConfigureSwagger(services);
-            
+
             services.AddControllers();
+
+
+            ConfigurePictureStorage(services);
+        }
+
+        private static void ConfigurePictureStorage(IServiceCollection services)
+        {
+            services.AddScoped<IPictureStorageDelegate, PictureStorageDelegate>();
             
-            services.AddScoped<IPictureStorage<PhotoShootImage, Guid>, PhotoShootPictureStorage>();
-            services.AddScoped<IPictureStorage<Package, int>, PackagePictureStorage>();
-            services.AddScoped<IPictureStorageDelegate, DirectoryPictureStorageDelegate>();
+            services.AddScoped(StorageOf<PhotoShootImage, Guid>(
+                "PhotoShootImages",
+                img => img.Id
+            ));
+
+            services.AddScoped(StorageOf<Package, int>(
+                "PackageImages",
+                pkg => pkg.ID
+            ));
         }
 
         private static void ConfigureSwagger(IServiceCollection services)
@@ -95,10 +110,7 @@ namespace OOL_API
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
 }

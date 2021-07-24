@@ -31,7 +31,7 @@ namespace OOL_API.Controllers
 
         [HttpGet]
         public IActionResult ListImages()
-            => Json(_pictureStorage.ListIdentifiers().Select(id =>
+            => Json(_context.PhotoShootImages.Select(img => img.Id).Select(id =>
                 new
                 {
                     id,
