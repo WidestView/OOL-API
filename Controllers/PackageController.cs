@@ -15,9 +15,9 @@ namespace OOL_API.Controllers
     {
         private readonly StudioContext _context;
 
-        private readonly PackagePictureStorage _pictureStorage;
+        private readonly IPictureStorage<Package, int> _pictureStorage;
 
-        public PackageController(StudioContext context, PackagePictureStorage pictureStorage)
+        public PackageController(StudioContext context, IPictureStorage<Package, int> pictureStorage)
         => (_context, _pictureStorage) = (context, pictureStorage);
 
         [HttpGet]

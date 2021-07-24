@@ -18,12 +18,12 @@ namespace OOL_API.Controllers
         // todo: use proper url retrieval method
         private const string ApiUrl = "http://localhost:5000";
 
-        private readonly PhotoShootPictureStorage _pictureStorage;
+        private readonly IPictureStorage<PhotoShootImage, Guid> _pictureStorage;
 
         private readonly StudioContext _context;
 
         public PhotoShootImageController(
-            PhotoShootPictureStorage pictureStorage,
+            IPictureStorage<PhotoShootImage, Guid> pictureStorage,
             StudioContext context
         ) => (_pictureStorage, _context) = (pictureStorage, context);
 

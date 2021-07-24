@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using OOL_API.Data;
+using OOL_API.Models;
 using OOL_API.Services;
 
 namespace OOL_API
@@ -32,9 +33,9 @@ namespace OOL_API
             
             services.AddControllers();
             
-            services.AddScoped<PhotoShootPictureStorage, PhotoShootPictureStorage>();
-            services.AddScoped<PackagePictureStorage, PackagePictureStorage>();
-            services.AddScoped<DirectoryPictureStorage, DirectoryPictureStorage>();
+            services.AddScoped<IPictureStorage<PhotoShootImage, Guid>, PhotoShootPictureStorage>();
+            services.AddScoped<IPictureStorage<Package, int>, PackagePictureStorage>();
+            services.AddScoped<IPictureStorageDelegate, DirectoryPictureStorageDelegate>();
         }
 
         private static void ConfigureSwagger(IServiceCollection services)

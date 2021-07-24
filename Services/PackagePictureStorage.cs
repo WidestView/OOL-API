@@ -6,34 +6,20 @@ using OOL_API.Models;
 
 namespace OOL_API.Services
 {
-    public class PackagePictureStorage : IPictureStorage<Package, int>
+    public class PackagePictureStorage : AbstractPictureStorage<Package, int>
     {
-        private readonly DirectoryPictureStorage _directoryStorage;
-
         private readonly StudioContext _context;
 
         public PackagePictureStorage(
-            DirectoryPictureStorage directoryStorage,
+            IPictureStorageDelegate storage,
             StudioContext context
-        )
+        ) : base(storage, "PackageImages")
         {
-            _directoryStorage = directoryStorage;
             _context = context;
         }
 
-        public IEnumerable<int> ListIdentifiers()
-        {
-            return _context.Packages.Select(p => p.ID);
-        }
+        protected override int IdentifierOf(Package model) => model.ID;
 
-        public byte[] GetPicture(int id)
-        {
-            return _directoryStorage.GetPicture(id.ToString());
-        }
-
-        public void PostPicture(Stream stream, Package image)
-        {
-            _directoryStorage.PostPicture(stream, image.ID.ToString());
-        }
+        public override IEnumerable<int> ListIdentifiers() => _context.Packages.Select(p => p.ID);
     }
 }

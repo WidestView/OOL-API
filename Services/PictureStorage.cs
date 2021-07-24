@@ -1,66 +1,55 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.AspNetCore.Hosting;
 
 namespace OOL_API.Services
 {
-    public class DirectoryPictureStorage
+    public interface IPictureStorageDelegate
     {
-        private readonly IWebHostEnvironment _environment;
+        public byte[] GetPicture(string id);
 
-        private string _directory;
-
-        public string Directory
-        {
-            get => _directory;
-            set => _directory = Path.Join("Images", value);
-        }
-
-        public DirectoryPictureStorage(IWebHostEnvironment environment)
-            => _environment = environment;
-
-        public byte[] GetPicture(string id)
-        {
-            var path = ResolveImagePath(id);
-
-            try
-            {
-                return File.ReadAllBytes(path);
-            }
-            catch (FileNotFoundException)
-            {
-                Console.WriteLine($"File {path} recognized but not found");
-            }
-            catch (DirectoryNotFoundException)
-            {
-                Console.WriteLine($"Directory solicited for {path} not found");
-            }
-
-            return null;
-        }
-
-        public void PostPicture(Stream stream, string id)
-        {
-            var path = ResolveImagePath(id);
-
-            using var file = File.OpenWrite(path);
-
-            file.Seek(0, SeekOrigin.Begin);
-
-            stream.CopyTo(file);
-        }
-
-        private string ResolveImagePath(string image)
-            => Path.Combine(_environment.ContentRootPath, $"{_directory}\\{image}.jpg");
+        public void PostPicture(Stream stream, string id);
+        
+        public string Directory { get; set; }
     }
 
-    interface IPictureStorage<in T, TIdentifier>
+    public interface IPictureStorage<in T, TIdentifier>
     {
         public IEnumerable<TIdentifier> ListIdentifiers();
 
         public byte[] GetPicture(TIdentifier id);
 
         public void PostPicture(Stream stream, T image);
+        
+    }
+    public abstract class AbstractPictureStorage<T, TIdentifier> 
+        : IPictureStorage<T, TIdentifier>
+    {
+        private readonly IPictureStorageDelegate _delegate;
+        
+        protected AbstractPictureStorage(
+            IPictureStorageDelegate storage,
+            string directory
+        )
+        {
+            _delegate = storage;
+            _delegate.Directory = directory;
+        }
+
+        protected virtual string IdentifierToString(TIdentifier id) 
+            => id.ToString();
+
+        protected abstract TIdentifier IdentifierOf(T model);
+        
+        public abstract IEnumerable<TIdentifier> ListIdentifiers();
+
+        public byte[] GetPicture(TIdentifier id)
+        {
+            return _delegate.GetPicture(IdentifierToString(id));
+        }
+
+        public void PostPicture(Stream stream, T image)
+        {
+            _delegate.PostPicture(stream, IdentifierToString(IdentifierOf(image)));
+        }
     }
 }
