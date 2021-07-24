@@ -1,65 +1,39 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.AspNetCore.Hosting;
 using OOL_API.Data;
 using OOL_API.Models;
 
 namespace OOL_API.Services
 {
-    public class PackagePictureStorage
+    public class PackagePictureStorage : IPictureStorage<Package, int>
     {
-        private readonly IWebHostEnvironment _environment;
-        
+        private readonly DirectoryPictureStorage _directoryStorage;
+
         private readonly StudioContext _context;
 
-        private readonly string _directory;
-
         public PackagePictureStorage(
-            StudioContext context,
-            IWebHostEnvironment environment,
-            string directory = null
+            DirectoryPictureStorage directoryStorage,
+            StudioContext context
         )
         {
-            _directory = directory ?? Path.Join("Images", "Package_Images").ToString();
-            _environment = environment;
+            _directoryStorage = directoryStorage;
             _context = context;
         }
 
-        public IEnumerable<Guid> ListIdentifiers() 
-            => _context.PhotoShootImages.Select(image => image.Id);
+        public IEnumerable<int> ListIdentifiers()
+        {
+            return _context.Packages.Select(p => p.ID);
+        }
 
         public byte[] GetPicture(int id)
         {
-            Package package = _context.Packages.Find(id);
-
-            if (package != null)
-            {
-                var path = ResolveImagePath(id.ToString());
-                
-                try
-                {
-                    return File.ReadAllBytes(path);
-                }
-                catch (FileNotFoundException)
-                {
-                    Console.WriteLine($"File {path} recognized but not found");
-                }
-                catch (DirectoryNotFoundException)
-                {
-                    Console.WriteLine($"Directory solicited for {path} not found");
-                }
-            }
-
-            return null;
+            return _directoryStorage.GetPicture(id.ToString());
         }
-        /*
-        public void PostPicture(Stream stream)
+
+        public void PostPicture(Stream stream, Package image)
         {
+            _directoryStorage.PostPicture(stream, image.ID.ToString());
         }
-        */
-        private string ResolveImagePath(string image)
-            => Path.Combine(_environment.ContentRootPath, $"{_directory}\\{image}.jpg");
     }
 }
