@@ -34,6 +34,7 @@ namespace OOL_API
             
             services.AddScoped<PhotoShootPictureStorage, PhotoShootPictureStorage>();
             services.AddScoped<PackagePictureStorage, PackagePictureStorage>();
+            services.AddScoped<DirectoryPictureStorage, DirectoryPictureStorage>();
         }
 
         private static void ConfigureSwagger(IServiceCollection services)
