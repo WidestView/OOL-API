@@ -43,12 +43,12 @@ namespace OOL_API
             services.AddScoped<IPictureStorageDelegate, PictureStorageDelegate>();
             
             services.AddScoped(StorageOf<PhotoShootImage, Guid>(
-                "PhotoShootImages",
+                "Photoshoot_Images",
                 img => img.Id
             ));
 
             services.AddScoped(StorageOf<Package, int>(
-                "PackageImages",
+                "Package_Images",
                 pkg => pkg.ID
             ));
         }

@@ -17,7 +17,12 @@ namespace OOL_API.Services
 
         public string Directory
         {
-            set => _directory = Path.Join("Images", value);
+            set
+            {
+                _directory = Path.Combine("Images", value);
+                
+                System.IO.Directory.CreateDirectory(_directory);
+            }
         }
 
         public PictureStorageDelegate(IWebHostEnvironment environment)
@@ -63,7 +68,7 @@ namespace OOL_API.Services
                 );
             }
 
-            return Path.Combine(_environment.ContentRootPath, $"{_directory}\\{image}.jpg");
+            return Path.Combine(_environment.ContentRootPath, _directory, $"{image}.jpg");
         }
     }
 
