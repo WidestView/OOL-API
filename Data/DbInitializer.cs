@@ -16,11 +16,9 @@ namespace OOL_API.Data
 
         public void Initialize(StudioContext context)
         {
-            if (_resetDatabase)
-            {
-                context.Database.EnsureDeleted();
-                context.Database.EnsureCreated();
-            }
+            if (_resetDatabase) context.Database.EnsureDeleted();
+
+            context.Database.EnsureCreated();
 
             var alreadyInitialized = context.Packages.Any();
 
