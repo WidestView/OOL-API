@@ -1,33 +1,38 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 using OOL_API.Models;
 
 namespace OOL_API.Data
 {
     public class DbInitializer
     {
-        // todo: move to configuration
-        private static readonly bool ResetDatabase = true;
-        
-        public static void Initialize(StudioContext context)
+        private readonly bool _resetDatabase;
+
+        public DbInitializer(IConfiguration configuration)
         {
-            if (ResetDatabase)
+            _resetDatabase = bool.Parse(configuration["ResetDatabaseOnBoot"] ?? "true");
+        }
+
+        public void Initialize(StudioContext context)
+        {
+            if (_resetDatabase)
             {
-                context.Database.EnsureDeleted(); //DROP DATABASE
+                context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();
             }
 
-            // Look for any packages.
-            if (context.Packages.Any())
-            {
-                return;   // DB has been seeded
-            }
+            var alreadyInitialized = context.Packages.Any();
+
+            if (alreadyInitialized) return;
 
             var packages = new[]
             {
-                new Package{
+                new Package
+                {
                     Name = "Premium",
-                    Description = "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
+                    Description =
+                        "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
                     BaseValue = 50.00m,
                     PricePerPhoto = 2.50m,
                     ImageQuantity = null,
@@ -35,9 +40,11 @@ namespace OOL_API.Data
                     MaxIterations = 5,
                     Available = true
                 },
-                new Package{
+                new Package
+                {
                     Name = "Você Modelo!",
-                    Description = "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
+                    Description =
+                        "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
                     BaseValue = 200.0m,
                     PricePerPhoto = 0.00m,
                     ImageQuantity = 200,
@@ -47,10 +54,7 @@ namespace OOL_API.Data
                 }
             };
 
-            foreach (Package p in packages)
-            {
-                context.Packages.Add(p);
-            }
+            foreach (var p in packages) context.Packages.Add(p);
 
             var shoots = new[]
             {
@@ -66,15 +70,12 @@ namespace OOL_API.Data
                 {
                     Address = "127001 street",
                     Duration = TimeSpan.FromHours(1),
-                    OrderId = 10,
-                },
+                    OrderId = 10
+                }
             };
 
-            foreach (var photoShoot in shoots)
-            {
-                context.PhotoShoots.Add(photoShoot);
-            }
-            
+            foreach (var photoShoot in shoots) context.PhotoShoots.Add(photoShoot);
+
             context.SaveChanges();
         }
     }
