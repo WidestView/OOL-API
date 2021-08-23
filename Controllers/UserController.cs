@@ -1,13 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
 
 #nullable enable
@@ -17,11 +16,11 @@ namespace OOL_API.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
+        private readonly IAppSettings _settings;
 
-        public UserController(IConfiguration configuration)
+        public UserController(IAppSettings settings)
         {
-            _configuration = configuration;
+            _settings = settings;
         }
 
         [AllowAnonymous]
@@ -66,11 +65,9 @@ namespace OOL_API.Controllers
 
         private string GenerateToken(string username)
         {
-            var configIssuer = _configuration["Jwt:Issuer"] ?? throw new KeyNotFoundException("Missing Jwt Issuer");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.JwtKey));
 
-            var configKey = _configuration["Jwt:Key"] ?? throw new KeyNotFoundException("Missing Jwt Key");
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configKey));
+            var issuer = _settings.JwtIssuer;
 
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -80,8 +77,8 @@ namespace OOL_API.Controllers
             };
 
             var token = new JwtSecurityToken(
-                configIssuer,
-                configIssuer,
+                issuer,
+                issuer,
                 claims,
                 expires: DateTime.Now.AddMinutes(120),
                 signingCredentials: credentials

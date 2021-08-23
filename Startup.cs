@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -21,10 +20,12 @@ namespace OOL_API
     {
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            Settings = new AppSettings(configuration);
         }
 
-        public IConfiguration Configuration { get; }
+        // public IConfiguration Configuration { get; }
+
+        public IAppSettings Settings { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -40,15 +41,20 @@ namespace OOL_API
             ConfigurePictureStorage(services);
 
             ConfigureJwt(services);
+
+            ConfigureSettings(services);
+        }
+
+        private void ConfigureSettings(IServiceCollection services)
+        {
+            services.AddSingleton(Settings);
         }
 
         private void ConfigureJwt(IServiceCollection services)
         {
-            var issuer = Configuration["Jwt:Issuer"] ??
-                         throw new KeyNotFoundException("Missing Jwt.Issuer in appsettings.json");
+            var issuer = Settings.JwtIssuer;
 
-            var key = Configuration["Jwt:Key"] ??
-                      throw new KeyNotFoundException("Missing Jwt.Key in appsettings.json");
+            var key = Settings.JwtKey;
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(
@@ -107,12 +113,12 @@ namespace OOL_API
         private void ConfigureDatabase(IServiceCollection services)
         {
             services.AddDbContext<StudioContext>(options =>
-                options.UseMySQL(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseMySQL(Settings.DefaultConnectionString));
         }
 
         private void ConfigureCors(IServiceCollection services)
         {
-            var allowedUrls = Configuration.GetSection("AllowedCorsUrls").Get<List<string>>().ToArray();
+            var allowedUrls = Settings.AllowedCorsUrls;
 
             services.AddCors(options => options.AddPolicy("ApiCorsPolicy",
                 builder => { builder.WithOrigins(allowedUrls).AllowAnyMethod().AllowAnyHeader(); }));
