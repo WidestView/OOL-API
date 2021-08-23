@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OOL_API.Data;
 using OOL_API.Models;
@@ -26,22 +29,51 @@ namespace OOL_API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllers();
+
             ConfigureDatabase(services);
 
             ConfigureCors(services);
 
             ConfigureSwagger(services);
 
-            services.AddControllers();
-
-
             ConfigurePictureStorage(services);
+
+            ConfigureJwt(services);
+        }
+
+        private void ConfigureJwt(IServiceCollection services)
+        {
+            var issuer = Configuration["Jwt:Issuer"] ??
+                         throw new KeyNotFoundException("Missing Jwt.Issuer in appsettings.json");
+
+            var key = Configuration["Jwt:Key"] ??
+                      throw new KeyNotFoundException("Missing Jwt.Key in appsettings.json");
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(
+                    options =>
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidIssuer = issuer,
+                            ValidAudience = issuer,
+                            IssuerSigningKey = new SymmetricSecurityKey(
+                                Encoding.UTF8.GetBytes(key)
+                            )
+                        };
+                    }
+                );
         }
 
         private static void ConfigurePictureStorage(IServiceCollection services)
         {
             services.AddScoped<IPictureStorageDelegate, PictureStorageDelegate>();
-            
+
             services.AddScoped(StorageOf<PhotoShootImage, Guid>(
                 "Photoshoot_Images",
                 img => img.Id
@@ -66,7 +98,7 @@ namespace OOL_API
                     License = new OpenApiLicense
                     {
                         Name = "Use under GPL-v3",
-                        Url = new Uri("https://github.com/WidestView/OOL-API/blob/main/LICENSE"),
+                        Url = new Uri("https://github.com/WidestView/OOL-API/blob/main/LICENSE")
                     }
                 });
             });
@@ -80,7 +112,7 @@ namespace OOL_API
 
         private void ConfigureCors(IServiceCollection services)
         {
-            string[] allowedUrls = Configuration.GetSection("AllowedCorsUrls").Get<List<string>>().ToArray();
+            var allowedUrls = Configuration.GetSection("AllowedCorsUrls").Get<List<string>>().ToArray();
 
             services.AddCors(options => options.AddPolicy("ApiCorsPolicy",
                 builder => { builder.WithOrigins(allowedUrls).AllowAnyMethod().AllowAnyHeader(); }));
@@ -89,10 +121,7 @@ namespace OOL_API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
             app.UseCors("ApiCorsPolicy");
 
@@ -107,6 +136,8 @@ namespace OOL_API
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
