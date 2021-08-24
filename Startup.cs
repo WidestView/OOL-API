@@ -49,7 +49,7 @@ namespace OOL_API
 
             services.AddScoped(StorageOf<Package, int>(
                 "Package_Images",
-                pkg => pkg.ID
+                pkg => pkg.Id
             ));
         }
 

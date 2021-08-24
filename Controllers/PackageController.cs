@@ -58,12 +58,12 @@ namespace OOL_API.Controllers
             _context.Packages.Add(package);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProduct", new { id = package.ID }, package);
+            return CreatedAtAction("GetProduct", new { id = package.Id }, package);
         }
 
         private bool PackageExists(int id)
         {
-            return _context.Packages.Any(e => e.ID == id);
+            return _context.Packages.Any(e => e.Id == id);
         }
     }
 }
