@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OOL_API.Data;
 using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
 
@@ -16,11 +18,13 @@ namespace OOL_API.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
+        private readonly StudioContext _context;
         private readonly IAppSettings _settings;
 
-        public UserController(IAppSettings settings)
+        public UserController(IAppSettings settings, StudioContext context)
         {
             _settings = settings;
+            _context = context;
         }
 
         [AllowAnonymous]
@@ -30,11 +34,11 @@ namespace OOL_API.Controllers
         {
             if (!ModelState.IsValid) return new BadRequestObjectResult(ModelState);
 
-            var user = AuthenticateUser(login!);
+            var user = AuthenticateEmployee(login!);
 
             if (user == null) return Unauthorized();
 
-            string token = GenerateToken(user.Username!);
+            string token = GenerateToken(user.UserId!);
 
             return Ok(new {token});
         }
@@ -47,21 +51,36 @@ namespace OOL_API.Controllers
         {
             var user = HttpContext.User;
 
-            var usernameClaim = user.Claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sid);
+            var username = user.Claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sid);
 
-            if (usernameClaim != null) return Ok($"Hello, {usernameClaim.Value}");
+            if (username == null) return Unauthorized();
 
-            return Unauthorized();
+            var employee = FindEmployeeWithUsername(username.Value);
+
+            if (employee == null) return Unauthorized();
+
+            return Ok($"Hello, {employee.User.Name}");
         }
 
-        private InputLogin? AuthenticateUser(InputLogin login)
+        private Employee? AuthenticateEmployee(InputLogin login)
         {
-            // todo: return user model
-            // todo: add database verification
+            var employee = FindEmployeeWithUsername(login.Username);
 
-            if (login.Username == "beep" && login.Password == "boop")
-                return login;
-            return null;
+            if (employee != null)
+                // todo: hash passwords
+                if (employee.User.Password != login.Password)
+                    employee = null;
+
+            return employee;
+        }
+
+        private Employee? FindEmployeeWithUsername(string username)
+        {
+            var employee = _context.Employees
+                .Include(it => it.User)
+                .FirstOrDefault(it => it.UserId == username);
+
+            return employee;
         }
 
         private string GenerateToken(string username)
