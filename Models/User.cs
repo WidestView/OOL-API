@@ -12,7 +12,6 @@ namespace OOL_API.Models
         [Required]
         public string Name { get; set; }
 
-        [Required]
         public string SocialName { get; set; }
 
         public DateTime BirthDate { get; set; }

@@ -24,6 +24,60 @@ namespace OOL_API.Data
 
             if (alreadyInitialized) return;
 
+            AddPackages(context);
+
+            AddPhotoShoots(context);
+
+            AddEmployees(context);
+
+            context.SaveChanges();
+        }
+
+        private static void AddEmployees(StudioContext context)
+        {
+            var occupation = new Occupation
+            {
+                Description = "Sleep",
+                Name = "Idk"
+            };
+
+            var employees = new[]
+            {
+                new Employee
+                {
+                    AcessLevel = 1,
+                    Gender = "Attack Helicopter",
+                    Occupation = occupation,
+                    User = new User
+                    {
+                        Active = true,
+                        BirthDate = DateTime.Now - TimeSpan.FromDays(6570),
+                        Cpf = "11111111111",
+                        Email = "some@email.com",
+                        Name = "bob",
+                        Password = "tohash",
+                        Phone = "40028922",
+                        SocialName = null
+                    }
+                }
+            };
+
+            context.Occupations.Add(occupation);
+
+            foreach (var employee in employees)
+            {
+                employee.OccupationId = employee.Occupation.Id;
+
+                context.Users.Add(employee.User);
+
+                employee.UserId = employee.User.Cpf;
+
+                context.Employees.Add(employee);
+            }
+        }
+
+        private static void AddPackages(StudioContext context)
+        {
             var packages = new[]
             {
                 new Package
@@ -53,7 +107,10 @@ namespace OOL_API.Data
             };
 
             foreach (var p in packages) context.Packages.Add(p);
+        }
 
+        private static void AddPhotoShoots(StudioContext context)
+        {
             var shoots = new[]
             {
                 new PhotoShoot
@@ -73,8 +130,6 @@ namespace OOL_API.Data
             };
 
             foreach (var photoShoot in shoots) context.PhotoShoots.Add(photoShoot);
-
-            context.SaveChanges();
         }
     }
 }
