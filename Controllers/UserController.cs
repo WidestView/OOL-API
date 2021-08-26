@@ -42,6 +42,7 @@ namespace OOL_API.Controllers
 
         [Authorize]
         [Route("greet")]
+        [HttpGet]
         public IActionResult Greet()
         {
             var user = HttpContext.User;
