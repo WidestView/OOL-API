@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 
-namespace OOL_API.Models
+namespace OOL_API.Services
 {
 #nullable enable
     public interface IAppSettings
