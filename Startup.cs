@@ -119,6 +119,8 @@ namespace OOL_API
 
         private void ConfigureDatabase(IServiceCollection services)
         {
+            services.AddScoped<DbInitializer>();
+
             services.AddDbContext<StudioContext>(options =>
                 options.UseMySQL(Settings.DefaultConnectionString));
         }

@@ -28,7 +28,7 @@ namespace OOL_API
             {
                 var context = services.GetRequiredService<StudioContext>();
 
-                var initializer = new DbInitializer(services);
+                var initializer = services.GetRequiredService<DbInitializer>();
 
                 initializer.Initialize(context);
             }

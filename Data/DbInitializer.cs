@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
 using OOL_API.Models;
 using OOL_API.Services;
 
@@ -9,17 +8,17 @@ namespace OOL_API.Data
     public class DbInitializer
     {
         private readonly IPasswordHash _hash;
-        private readonly bool _resetDatabase;
+        private readonly IAppSettings _settings;
 
-        public DbInitializer(IServiceProvider provider)
+        public DbInitializer(IPasswordHash hash, IAppSettings settings)
         {
-            _resetDatabase = provider.GetRequiredService<IAppSettings>().ResetDatabaseOnBoot;
-            _hash = provider.GetRequiredService<IPasswordHash>();
+            _hash = hash;
+            _settings = settings;
         }
 
         public void Initialize(StudioContext context)
         {
-            if (_resetDatabase) context.Database.EnsureDeleted();
+            if (_settings.ResetDatabaseOnBoot) context.Database.EnsureDeleted();
 
             context.Database.EnsureCreated();
 
@@ -55,10 +54,10 @@ namespace OOL_API.Data
                     {
                         Active = true,
                         BirthDate = DateTime.Now - TimeSpan.FromDays(6570),
-                        Cpf = "11111111111",
+                        Cpf = _settings.DefaultUserLogin,
                         Email = "some@email.com",
                         Name = "bob",
-                        Password = _hash.Of("beep"),
+                        Password = _hash.Of(_settings.DefaultUserPassword),
                         Phone = "40028922",
                         SocialName = null
                     }
