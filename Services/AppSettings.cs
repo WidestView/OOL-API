@@ -17,7 +17,10 @@ namespace OOL_API.Services
         public bool ResetDatabaseOnBoot { get; }
 
         public string DefaultUserPassword { get; }
+
         public string DefaultUserLogin { get; }
+
+        public bool RequireAuth { get; }
     }
 
     public class AppSettings : IAppSettings
@@ -46,6 +49,8 @@ namespace OOL_API.Services
 
             DefaultUserPassword = configuration["DefaultUser:Password"]
                                   ?? throw Missing("DefaultUser.Password");
+
+            RequireAuth = bool.Parse(configuration["RequireAuth"] ?? "false");
         }
 
         public string JwtIssuer { get; }
@@ -58,6 +63,8 @@ namespace OOL_API.Services
         public string DefaultUserPassword { get; }
 
         public string DefaultUserLogin { get; }
+
+        public bool RequireAuth { get; }
 
 
         private KeyNotFoundException Missing(string key)

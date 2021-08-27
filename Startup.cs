@@ -1,8 +1,10 @@
 using System;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +32,7 @@ namespace OOL_API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            ConfigureControllers(services);
 
             ConfigureDatabase(services);
 
@@ -45,6 +47,21 @@ namespace OOL_API
             ConfigureSettings(services);
 
             ConfigureHash(services);
+        }
+
+        private void ConfigureControllers(IServiceCollection services)
+        {
+            services.AddControllers(config =>
+            {
+                if (Settings.RequireAuth)
+                {
+                    var policy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+
+                    config.Filters.Add(new AuthorizeFilter(policy));
+                }
+            });
         }
 
         private void ConfigureHash(IServiceCollection services)
