@@ -1,10 +1,10 @@
 using System;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OOL_API.Data;
+using OOL_API.Services;
 
 namespace OOL_API
 {
@@ -29,7 +29,7 @@ namespace OOL_API
                 {
                     var context = services.GetRequiredService<StudioContext>();
 
-                    var configuration = services.GetRequiredService<IConfiguration>();
+                    var configuration = services.GetRequiredService<IAppSettings>();
 
                     var initializer = new DbInitializer(configuration);
 

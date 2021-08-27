@@ -13,6 +13,8 @@ namespace OOL_API.Services
         public string[] AllowedCorsUrls { get; }
 
         public string DefaultConnectionString { get; }
+
+        public bool ResetDatabaseOnBoot { get; set; }
     }
 
     public class AppSettings : IAppSettings
@@ -33,12 +35,16 @@ namespace OOL_API.Services
 
             DefaultConnectionString = configuration.GetConnectionString("DefaultConnection")
                                       ?? throw Missing("AllowedCorsUrls");
+
+            ResetDatabaseOnBoot = bool.Parse(configuration["ResetDatabaseOnBoot"] ?? "true");
         }
 
         public string JwtIssuer { get; }
         public string JwtKey { get; }
         public string[] AllowedCorsUrls { get; }
         public string DefaultConnectionString { get; }
+
+        public bool ResetDatabaseOnBoot { get; set; }
 
         private KeyNotFoundException Missing(string key)
         {

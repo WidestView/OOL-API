@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
 using OOL_API.Models;
+using OOL_API.Services;
 
 namespace OOL_API.Data
 {
@@ -9,9 +9,9 @@ namespace OOL_API.Data
     {
         private readonly bool _resetDatabase;
 
-        public DbInitializer(IConfiguration configuration)
+        public DbInitializer(IAppSettings settings)
         {
-            _resetDatabase = bool.Parse(configuration["ResetDatabaseOnBoot"] ?? "true");
+            _resetDatabase = settings.ResetDatabaseOnBoot;
         }
 
         public void Initialize(StudioContext context)
