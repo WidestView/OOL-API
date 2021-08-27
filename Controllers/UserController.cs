@@ -20,12 +20,14 @@ namespace OOL_API.Controllers
     public class UserController : ControllerBase
     {
         private readonly StudioContext _context;
+        private readonly IPasswordHash _passwordHash;
         private readonly IAppSettings _settings;
 
-        public UserController(IAppSettings settings, StudioContext context)
+        public UserController(IAppSettings settings, StudioContext context, IPasswordHash passwordHash)
         {
             _settings = settings;
             _context = context;
+            _passwordHash = passwordHash;
         }
 
         [AllowAnonymous]
@@ -67,9 +69,10 @@ namespace OOL_API.Controllers
         {
             var employee = FindEmployeeWithUsername(login.Username);
 
+            var hash = _passwordHash.Of(login.Password);
+
             if (employee != null)
-                // todo: hash passwords
-                if (employee.User.Password != login.Password)
+                if (employee.User.Password != hash)
                     employee = null;
 
             return employee;

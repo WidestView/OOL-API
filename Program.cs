@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OOL_API.Data;
-using OOL_API.Services;
 
 namespace OOL_API
 {
@@ -21,25 +20,22 @@ namespace OOL_API
 
         private static void CreateDbIfNotExists(IHost host)
         {
-            using (var scope = host.Services.CreateScope())
+            using var scope = host.Services.CreateScope();
+
+            var services = scope.ServiceProvider;
+
+            try
             {
-                var services = scope.ServiceProvider;
+                var context = services.GetRequiredService<StudioContext>();
 
-                try
-                {
-                    var context = services.GetRequiredService<StudioContext>();
+                var initializer = new DbInitializer(services);
 
-                    var configuration = services.GetRequiredService<IAppSettings>();
-
-                    var initializer = new DbInitializer(configuration);
-
-                    initializer.Initialize(context);
-                }
-                catch (Exception ex)
-                {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred creating the DB.");
-                }
+                initializer.Initialize(context);
+            }
+            catch (Exception ex)
+            {
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "An error occurred creating the DB.");
             }
         }
 

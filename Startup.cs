@@ -43,6 +43,13 @@ namespace OOL_API
             ConfigureJwt(services);
 
             ConfigureSettings(services);
+
+            ConfigureHash(services);
+        }
+
+        private void ConfigureHash(IServiceCollection services)
+        {
+            services.AddScoped<IPasswordHash, Sha256PasswordHash>();
         }
 
         private void ConfigureSettings(IServiceCollection services)

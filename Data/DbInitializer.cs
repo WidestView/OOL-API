@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using OOL_API.Models;
 using OOL_API.Services;
 
@@ -7,11 +8,13 @@ namespace OOL_API.Data
 {
     public class DbInitializer
     {
+        private readonly IPasswordHash _hash;
         private readonly bool _resetDatabase;
 
-        public DbInitializer(IAppSettings settings)
+        public DbInitializer(IServiceProvider provider)
         {
-            _resetDatabase = settings.ResetDatabaseOnBoot;
+            _resetDatabase = provider.GetRequiredService<IAppSettings>().ResetDatabaseOnBoot;
+            _hash = provider.GetRequiredService<IPasswordHash>();
         }
 
         public void Initialize(StudioContext context)
@@ -33,7 +36,7 @@ namespace OOL_API.Data
             context.SaveChanges();
         }
 
-        private static void AddEmployees(StudioContext context)
+        private void AddEmployees(StudioContext context)
         {
             var occupation = new Occupation
             {
@@ -55,7 +58,7 @@ namespace OOL_API.Data
                         Cpf = "11111111111",
                         Email = "some@email.com",
                         Name = "bob",
-                        Password = "tohash",
+                        Password = _hash.Of("beep"),
                         Phone = "40028922",
                         SocialName = null
                     }
