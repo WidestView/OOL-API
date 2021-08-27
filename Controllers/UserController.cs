@@ -67,7 +67,7 @@ namespace OOL_API.Controllers
 
         private Employee? AuthenticateEmployee(InputLogin login)
         {
-            var employee = FindEmployeeWithUsername(login.Username);
+            var employee = FindEmployeeWithUsername(login.Login);
 
             var hash = _passwordHash.Of(login.Password);
 
