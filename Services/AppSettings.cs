@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 
-namespace OOL_API.Models
+namespace OOL_API.Services
 {
 #nullable enable
     public interface IAppSettings
@@ -13,6 +13,14 @@ namespace OOL_API.Models
         public string[] AllowedCorsUrls { get; }
 
         public string DefaultConnectionString { get; }
+
+        public bool ResetDatabaseOnBoot { get; }
+
+        public string DefaultUserPassword { get; }
+
+        public string DefaultUserLogin { get; }
+
+        public bool RequireAuth { get; }
     }
 
     public class AppSettings : IAppSettings
@@ -33,12 +41,31 @@ namespace OOL_API.Models
 
             DefaultConnectionString = configuration.GetConnectionString("DefaultConnection")
                                       ?? throw Missing("AllowedCorsUrls");
+
+            ResetDatabaseOnBoot = bool.Parse(configuration["ResetDatabaseOnBoot"] ?? "true");
+
+            DefaultUserLogin = configuration["DefaultUser:Login"]
+                               ?? throw Missing("DefaultUser.Login");
+
+            DefaultUserPassword = configuration["DefaultUser:Password"]
+                                  ?? throw Missing("DefaultUser.Password");
+
+            RequireAuth = bool.Parse(configuration["RequireAuth"] ?? "false");
         }
 
         public string JwtIssuer { get; }
         public string JwtKey { get; }
         public string[] AllowedCorsUrls { get; }
         public string DefaultConnectionString { get; }
+
+        public bool ResetDatabaseOnBoot { get; }
+
+        public string DefaultUserPassword { get; }
+
+        public string DefaultUserLogin { get; }
+
+        public bool RequireAuth { get; }
+
 
         private KeyNotFoundException Missing(string key)
         {

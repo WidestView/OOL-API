@@ -6,8 +6,8 @@ namespace OOL_API.Models.DataTransfer
     public class InputLogin
     {
         [Required]
-        [JsonProperty("username")]
-        public string Username { get; set; }
+        [JsonProperty("login")]
+        public string Login { get; set; }
 
         [Required]
         [JsonProperty("password")]
