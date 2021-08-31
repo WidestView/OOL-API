@@ -1,111 +1,58 @@
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using OOL_API.Data;
 using OOL_API.Models;
-using OOL_API.Models.DataTransfer;
 using OOL_API.Services;
 
 #nullable enable
 
 namespace OOL_API.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiController]
+    [Route("api/user")]
     public class UserController : ControllerBase
     {
-        private readonly StudioContext _context;
-        private readonly IPasswordHash _passwordHash;
-        private readonly IAppSettings _settings;
+        private readonly CurrentUserInfo _currentUserInfo;
+        private readonly IPictureStorage<User, string> _pictureStorage;
 
-        public UserController(IAppSettings settings, StudioContext context, IPasswordHash passwordHash)
+        public UserController(
+            CurrentUserInfo currentUserInfo,
+            IPictureStorage<User, string> pictureStorage
+        )
         {
-            _settings = settings;
-            _context = context;
-            _passwordHash = passwordHash;
+            _currentUserInfo = currentUserInfo;
+            _pictureStorage = pictureStorage;
         }
 
-        [AllowAnonymous]
-        [Route("login")]
-        [HttpPost]
-        public IActionResult Login([FromBody] InputLogin login)
+        [HttpGet]
+        [Route("picture")]
+        public IActionResult GetPicture()
         {
-            if (!ModelState.IsValid) return new BadRequestObjectResult(ModelState);
-
-            var user = AuthenticateUser(login!);
+            var user = _currentUserInfo.GetCurrentUser();
 
             if (user == null) return Unauthorized();
 
-            string token = GenerateToken(user.Cpf!);
+            var content = _pictureStorage.GetPicture(user.Cpf);
 
-            return Ok(new {token});
+            if (content == null) return NotFound();
+
+            return File(content, "image/jpeg");
         }
 
-
-        [Authorize]
-        [HttpGet]
-        [Route("greet")]
-        public IActionResult Greet()
+        [HttpPost]
+        [Route("upload-image")]
+        public IActionResult Upload([FromForm] IFormFile file)
         {
-            var user = HttpContext.User;
+            var user = _currentUserInfo.GetCurrentUser();
 
-            var username = user.Claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sid);
+            if (user == null) return Unauthorized();
 
-            if (username == null) return Unauthorized();
+            if (file.ContentType != "image/jpeg") return BadRequest();
 
-            var userWithLogin = FindUserWithLogin(username.Value);
+            using var stream = file.OpenReadStream();
 
-            if (userWithLogin == null) return Unauthorized();
+            _pictureStorage.PostPicture(stream, user);
 
-            return Ok($"Hello, {userWithLogin.Name}");
-        }
-
-        private User? AuthenticateUser(InputLogin login)
-        {
-            var employee = FindUserWithLogin(login.Login);
-
-            var hash = _passwordHash.Of(login.Password);
-
-            if (employee != null)
-                if (employee.Password != hash)
-                    employee = null;
-
-            return employee;
-        }
-
-        private User? FindUserWithLogin(string login)
-        {
-            return _context.Users.FirstOrDefault(
-                user => user.Email == login || user.Cpf == login
-            );
-        }
-
-        private string GenerateToken(string username)
-        {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.JwtKey));
-
-            var issuer = _settings.JwtIssuer;
-
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sid, username)
-            };
-
-            var token = new JwtSecurityToken(
-                issuer,
-                issuer,
-                claims,
-                expires: DateTime.Now.AddMinutes(120),
-                signingCredentials: credentials
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return CreatedAtAction("GetPicture", "");
         }
     }
 }

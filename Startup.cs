@@ -125,9 +125,9 @@ namespace OOL_API
             ));
 
             services.AddScoped(
-                StorageOf<Employee, string>(
-                    "Employee_Images",
-                    employee => employee.UserId
+                StorageOf<User, string>(
+                    "User_Images",
+                    employee => employee.Cpf
                 )
             );
         }
