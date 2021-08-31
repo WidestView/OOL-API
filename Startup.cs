@@ -123,6 +123,13 @@ namespace OOL_API
                 "Package_Images",
                 pkg => pkg.Id
             ));
+
+            services.AddScoped(
+                StorageOf<Employee, string>(
+                    "Employee_Images",
+                    employee => employee.UserId
+                )
+            );
         }
 
         private static void ConfigureSwagger(IServiceCollection services)

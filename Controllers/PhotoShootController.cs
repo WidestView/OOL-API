@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 using OOL_API.Models.DataTransfer;
+using OOL_API.Services;
 
 namespace OOL_API.Controllers
 {
@@ -13,8 +14,12 @@ namespace OOL_API.Controllers
     {
         private readonly StudioContext _context;
 
-        public PhotoShootController(StudioContext context)
-            => _context = context;
+        private readonly CurrentUserInfo _currentUser;
+
+        public PhotoShootController(StudioContext context, CurrentUserInfo userInfo)
+        {
+            (_context, _currentUser) = (context, userInfo);
+        }
 
 
         [HttpGet]
@@ -25,6 +30,21 @@ namespace OOL_API.Controllers
             );
         }
 
+        [HttpGet]
+        [Route("current")]
+        public IActionResult ListCurrentPhotoshoots()
+        {
+            var employee = _currentUser.GetCurrentEmployee();
+
+            if (employee == null) return Unauthorized();
+
+            var shoots = _context.PhotoShoots.Where(
+                shoot => shoot.Employees.Any(e => e.UserId == employee.UserId));
+
+            return Ok(shoots.Select(s => new OutputPhotoShoot(s, false)));
+        }
+
+
         [HttpGet("{id}")]
         public IActionResult GetById(Guid id)
         {
@@ -33,10 +53,7 @@ namespace OOL_API.Controllers
                 .Include(shot => shot.Images)
                 .FirstOrDefault(shoot => shoot.ResourceId == id);
 
-            if (result == null)
-            {
-                return NotFound();
-            }
+            if (result == null) return NotFound();
 
             return Json(new OutputPhotoShoot(result, true));
         }

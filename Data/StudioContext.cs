@@ -26,9 +26,11 @@ namespace OOL_API.Data
             base.OnModelCreating(builder);
 
             builder.Entity<Package>().ToTable("Package");
-            builder.Entity<PhotoShoot>().ToTable("PhotoShoot");
             builder.Entity<User>().ToTable("User");
             builder.Entity<Occupation>().ToTable("Occupation");
+
+            builder.Entity<PhotoShoot>().ToTable("PhotoShoot")
+                .HasMany(shoot => shoot.Employees);
 
             builder.Entity<PhotoShootImage>()
                 .ToTable("PhotoShootImage")

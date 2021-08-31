@@ -25,17 +25,7 @@ namespace OOL_API.Controllers
 
             if (employee == null) return Unauthorized();
 
-            var output = new OutputEmployee
-            {
-                Cpf = employee.UserId,
-                BirthDate = employee.User.BirthDate,
-                Name = employee.User.Name,
-                SocialName = employee.User.SocialName,
-                Phone = employee.User.Phone,
-                Email = employee.User.Email
-            };
-
-            return Ok(output);
+            return Ok(new OutputEmployee(employee));
         }
     }
 }
