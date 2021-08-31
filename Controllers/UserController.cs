@@ -5,7 +5,6 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OOL_API.Data;
 using OOL_API.Models;
@@ -37,19 +36,19 @@ namespace OOL_API.Controllers
         {
             if (!ModelState.IsValid) return new BadRequestObjectResult(ModelState);
 
-            var user = AuthenticateEmployee(login!);
+            var user = AuthenticateUser(login!);
 
             if (user == null) return Unauthorized();
 
-            string token = GenerateToken(user.UserId!);
+            string token = GenerateToken(user.Cpf!);
 
             return Ok(new {token});
         }
 
 
         [Authorize]
-        [Route("greet")]
         [HttpGet]
+        [Route("greet")]
         public IActionResult Greet()
         {
             var user = HttpContext.User;
@@ -58,33 +57,31 @@ namespace OOL_API.Controllers
 
             if (username == null) return Unauthorized();
 
-            var employee = FindEmployeeWithUsername(username.Value);
+            var userWithLogin = FindUserWithLogin(username.Value);
 
-            if (employee == null) return Unauthorized();
+            if (userWithLogin == null) return Unauthorized();
 
-            return Ok($"Hello, {employee.User.Name}");
+            return Ok($"Hello, {userWithLogin.Name}");
         }
 
-        private Employee? AuthenticateEmployee(InputLogin login)
+        private User? AuthenticateUser(InputLogin login)
         {
-            var employee = FindEmployeeWithUsername(login.Login);
+            var employee = FindUserWithLogin(login.Login);
 
             var hash = _passwordHash.Of(login.Password);
 
             if (employee != null)
-                if (employee.User.Password != hash)
+                if (employee.Password != hash)
                     employee = null;
 
             return employee;
         }
 
-        private Employee? FindEmployeeWithUsername(string username)
+        private User? FindUserWithLogin(string login)
         {
-            var employee = _context.Employees
-                .Include(it => it.User)
-                .FirstOrDefault(it => it.UserId == username);
-
-            return employee;
+            return _context.Users.FirstOrDefault(
+                user => user.Email == login || user.Cpf == login
+            );
         }
 
         private string GenerateToken(string username)
