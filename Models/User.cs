@@ -7,6 +7,7 @@ namespace OOL_API.Models
     {
         [Required]
         [Key]
+        [MaxLength(11)]
         public string Cpf { get; set; }
 
         [Required]
