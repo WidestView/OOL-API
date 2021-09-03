@@ -38,11 +38,27 @@ namespace OOL_API
                 logger.LogError(ex, "An error occurred creating the DB.");
             }
         }
-
+#if DEBUG
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
         }
+
+#endif
+
+#if !DEBUG
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+           Host.CreateDefaultBuilder(args)
+               .ConfigureWebHostDefaults(webBuilder =>
+               {
+                   var port = Environment.GetEnvironmentVariable("PORT");
+
+                   webBuilder.UseStartup<Startup>()
+                   .UseUrls("http://*:" + port);
+               });
+#endif
+
     }
 }
