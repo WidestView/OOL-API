@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using OOL_API.Models;
 using OOL_API.Services;
@@ -28,9 +29,9 @@ namespace OOL_API.Data
 
             AddPackages(context);
 
-            AddPhotoShoots(context);
-
             AddEmployees(context);
+
+            AddPhotoShoots(context);
 
             context.SaveChanges();
         }
@@ -47,7 +48,7 @@ namespace OOL_API.Data
             {
                 new Employee
                 {
-                    AcessLevel = 1,
+                    AccessLevel = 1,
                     Gender = "Attack Helicopter",
                     Occupation = occupation,
                     User = new User
@@ -113,6 +114,10 @@ namespace OOL_API.Data
 
         private static void AddPhotoShoots(StudioContext context)
         {
+            context.SaveChanges();
+
+            var employee = context.Employees.First();
+
             var shoots = new[]
             {
                 new PhotoShoot
@@ -120,7 +125,8 @@ namespace OOL_API.Data
                     Address = "localhost avenue",
                     Duration = TimeSpan.FromHours(1),
                     OrderId = 10,
-                    ResourceId = Guid.Parse("5a60a77f-e51b-4aa6-7b3c-08d94570814c")
+                    ResourceId = Guid.Parse("5a60a77f-e51b-4aa6-7b3c-08d94570814c"),
+                    Employees = new List<Employee> {employee}
                 },
 
                 new PhotoShoot

@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace OOL_API.Models
@@ -10,7 +9,7 @@ namespace OOL_API.Models
 
         public User User { get; set; }
 
-        public int AcessLevel { get; set; }
+        public int AccessLevel { get; set; }
 
         public int OccupationId { get; set; }
 
