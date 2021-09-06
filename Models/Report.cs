@@ -15,7 +15,7 @@ namespace OOL_API.Models
 
         public string Text { get; set; }
 
-        public string CreatorCpf { get; set; }
+        public string CreatorId { get; set; }
         public Employee Creator { get; set; }
 
         public int PhotoShootId { get; set; }

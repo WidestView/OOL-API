@@ -11,7 +11,6 @@ namespace OOL_API.Controllers
     [ApiController]
     public class BusinessController : ControllerBase
     {
-        //TODO: LOOK HERE PAL
         // CART, ORDERS, STUFF LIKE THAT
     }
 }

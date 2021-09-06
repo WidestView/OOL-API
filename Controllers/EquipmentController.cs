@@ -11,6 +11,6 @@ namespace OOL_API.Controllers
     [ApiController]
     public class EquipmentController : ControllerBase
     {
-        //TODO: WONDER WHAT THAT WILL LOOK LIKE!
+        //WONDER WHAT THAT WILL LOOK LIKE!
     }
 }
