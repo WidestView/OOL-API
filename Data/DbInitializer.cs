@@ -123,7 +123,7 @@ namespace OOL_API.Data
 
         private Customer[] CreateCustomers(StudioContext context, User user)
         {
-            Cart cart = new Cart{ Id = 0 };
+            Cart cart = new Cart();
             context.Carts.Add(cart); //DEFAULT VALUES EXCEPTION, MUST FIX
             context.SaveChanges();
 
