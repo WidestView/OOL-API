@@ -27,59 +27,20 @@ namespace OOL_API.Data
 
             if (alreadyInitialized) return;
 
-            AddPackages(context);
+            Package[] packages = CreatePackages(context);
 
-            AddEmployees(context);
+            User[] users = CreateUsers(context);
 
-            AddPhotoShoots(context);
+            Employee[] employees = CreateEmployees(context, users[0]);
 
-            context.SaveChanges();
+            Customer[] customers = CreateCustomers(context, users[0]);
+
+            Order[] orders = CreateOrders(context, customers[0], packages[0]);
+
+            PhotoShoot[] photoShoots = CreatePhotoshoots(context, orders[0]);
         }
 
-        private void AddEmployees(StudioContext context)
-        {
-            var occupation = new Occupation
-            {
-                Description = "Sleep",
-                Name = "Idk"
-            };
-
-            var employees = new[]
-            {
-                new Employee
-                {
-                    AccessLevel = 1,
-                    Gender = "Attack Helicopter",
-                    Occupation = occupation,
-                    User = new User
-                    {
-                        Active = true,
-                        BirthDate = DateTime.Now - TimeSpan.FromDays(6570),
-                        Cpf = _settings.DefaultUserLogin,
-                        Email = "some@email.com",
-                        Name = "bob",
-                        Password = _hash.Of(_settings.DefaultUserPassword),
-                        Phone = "40028922",
-                        SocialName = null
-                    }
-                }
-            };
-
-            context.Occupations.Add(occupation);
-
-            foreach (var employee in employees)
-            {
-                employee.OccupationId = employee.Occupation.Id;
-
-                context.Users.Add(employee.User);
-
-                employee.UserId = employee.User.Cpf;
-
-                context.Employees.Add(employee);
-            }
-        }
-
-        private static void AddPackages(StudioContext context)
+        private static Package[] CreatePackages(StudioContext context)
         {
             var packages = new[]
             {
@@ -110,9 +71,91 @@ namespace OOL_API.Data
             };
 
             foreach (var p in packages) context.Packages.Add(p);
+            context.SaveChanges();
+            return packages;
         }
 
-        private static void AddPhotoShoots(StudioContext context)
+        private User[] CreateUsers(StudioContext context)
+        {
+            var users = new[]{
+                new User
+                {
+                    Active = true,
+                    BirthDate = DateTime.Now - TimeSpan.FromDays(6570),
+                    Cpf = _settings.DefaultUserLogin,
+                    Email = "some@email.com",
+                    Name = "bob",
+                    Password = _hash.Of(_settings.DefaultUserPassword),
+                    Phone = "40028922",
+                    SocialName = null
+                }
+            };
+
+            foreach (var user in users) context.Users.Add(user);
+            context.SaveChanges();
+            return users;
+        }
+
+        private Employee[] CreateEmployees(StudioContext context, User user)
+        {
+            var occupation = new Occupation
+            {
+                Description = "Sleep",
+                Name = "Idk"
+            };
+
+            context.Occupations.Add(occupation);
+            context.SaveChanges();
+
+            var employees = new[]{
+                new Employee
+                {
+                    AccessLevel = 1,
+                    Gender = "Attack Helicopter",
+                    OccupationId = occupation.Id,
+                    UserId = user.Cpf
+                }
+            };
+
+            foreach (var employee in employees) context.Employees.Add(employee);
+            context.SaveChanges();
+            return employees;
+        }
+
+        private Customer[] CreateCustomers(StudioContext context, User user)
+        {
+            Cart cart = new Cart();
+            context.Carts.Add(cart); //DEFAULT VALUES EXCEPTION, MUST FIX
+            context.SaveChanges();
+
+            var customers = new[]
+            {
+                new Customer
+                {
+                    UserId = user.Cpf,
+                    CartId = cart.Id
+                }
+            };
+
+            foreach (var customer in customers) context.Customers.Add(customer);
+            context.SaveChanges();
+            return customers;
+        }
+
+        private Order[] CreateOrders(StudioContext context, Customer customer, Package package)
+        {
+            var order = new Order
+            {
+                CartId = customer.CartId,
+                PackageId = package.Id
+            };
+
+            context.Orders.Add(order);
+            context.SaveChanges();
+            return new[] { order };
+        }
+
+        private PhotoShoot[] CreatePhotoshoots(StudioContext context, Order order)
         {
             context.SaveChanges();
 
@@ -124,20 +167,21 @@ namespace OOL_API.Data
                 {
                     Address = "localhost avenue",
                     Duration = TimeSpan.FromHours(1),
-                    OrderId = 10,
-                    ResourceId = Guid.Parse("5a60a77f-e51b-4aa6-7b3c-08d94570814c"),
-                    Employees = new List<Employee> {employee}
+                    OrderId = order.Id,
+                    ResourceId = Guid.Parse("5a60a77f-e51b-4aa6-7b3c-08d94570814c")
                 },
 
                 new PhotoShoot
                 {
                     Address = "127001 street",
                     Duration = TimeSpan.FromHours(1),
-                    OrderId = 10
+                    OrderId = order.Id
                 }
             };
 
             foreach (var photoShoot in shoots) context.PhotoShoots.Add(photoShoot);
+            context.SaveChanges();
+            return shoots;
         }
     }
 }

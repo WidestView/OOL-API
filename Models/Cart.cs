@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace OOL_API.Models
 {
-    public class Occupation
+    public class Cart
     {
         [Key]
         public int Id { get; set; }
 
-        [Required]
-        public string Name { get; set; }
-
-        [Required]
-        public string Description { get; set; }
+        public string Hack { get; set; } // Hack String because EF CORE SUCKS!!!
     }
 }
