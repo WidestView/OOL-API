@@ -15,6 +15,7 @@ namespace OOL_API.Models
         public Guid ResourceId { get; set; } = Guid.NewGuid();
 
         public int OrderId { get; set; }
+        public Order Order { get; set; }
 
         [Required]
         public string Address { get; set; }
