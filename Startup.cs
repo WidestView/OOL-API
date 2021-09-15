@@ -59,6 +59,7 @@ namespace OOL_API
         private void ConfigureQR(IServiceCollection services)
         {
             services.AddScoped<QRCodeGenerator>();
+            services.AddScoped<QrHandler>();
         }
 
         private void ConfigureAuth(IServiceCollection services)

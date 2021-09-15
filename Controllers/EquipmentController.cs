@@ -1,14 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 using OOL_API.Models.DataTransfer;
-using QRCoder;
 
 namespace OOL_API.Controllers
 {
@@ -107,48 +102,6 @@ namespace OOL_API.Controllers
             _context.SaveChanges();
 
             return Ok();
-        }
-
-        [HttpGet]
-        [Route("qr/{id}")]
-        public IActionResult GetQr(int id)
-        {
-            var equipment = _context.Equipments.Find(id);
-
-            if (equipment == null) return NotFound();
-
-            var text = "oolMobile://" +
-                       JsonSerializer.Serialize(
-                           new
-                           {
-                               type = "equipment",
-                               id = equipment.Id.ToString()
-                           }
-                       );
-
-            var generator = new QRCodeGenerator();
-
-            var data = generator.CreateQrCode(
-                text,
-                QRCodeGenerator.ECCLevel.M
-            );
-
-            var qr = new QRCode(data);
-
-            var qrImage = qr.GetGraphic(20);
-
-            var bytes = GetImageBytes(qrImage);
-
-            return File(bytes, "image/png");
-        }
-
-        private static byte[] GetImageBytes(Bitmap bitmap)
-        {
-            using var stream = new MemoryStream();
-
-            bitmap.Save(stream, ImageFormat.Png);
-
-            return stream.ToArray();
         }
     }
 }
