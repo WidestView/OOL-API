@@ -12,7 +12,7 @@ namespace OOL_API.Models.DataTransfer
             BirthDate = employee.User.BirthDate;
             Phone = employee.User.Phone;
             Email = employee.User.Email;
-            AccessLevel = employee.AccessLevel;
+            AccessLevel = (int) employee.AccessLevel;
             OccupationId = employee.OccupationId;
             Occupation = employee.Occupation;
             Gender = employee.Gender;

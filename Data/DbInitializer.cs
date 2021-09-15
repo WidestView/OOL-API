@@ -27,20 +27,20 @@ namespace OOL_API.Data
 
             if (alreadyInitialized) return;
 
-            Package[] packages = CreatePackages(context);
+            CreatePackages(context);
 
-            User[] users = CreateUsers(context);
+            var users = CreateUsers(context);
 
-            Employee[] employees = CreateEmployees(context, users[0]);
+            CreateEmployees(context, users);
 
-            Customer[] customers = CreateCustomers(context, users[0]);
+            CreateCustomers(context);
 
-            Order[] orders = CreateOrders(context, customers[0], packages[0]);
+            CreateOrders(context);
 
-            PhotoShoot[] photoShoots = CreatePhotoshoots(context, orders[0]);
+            CreatePhotoshoots(context);
         }
 
-        private static Package[] CreatePackages(StudioContext context)
+        private void CreatePackages(StudioContext context)
         {
             var packages = new[]
             {
@@ -71,23 +71,35 @@ namespace OOL_API.Data
             };
 
             foreach (var p in packages) context.Packages.Add(p);
+
             context.SaveChanges();
-            return packages;
         }
 
         private User[] CreateUsers(StudioContext context)
         {
-            var users = new[]{
+            var users = new[]
+            {
                 new User
                 {
                     Active = true,
                     BirthDate = DateTime.Now - TimeSpan.FromDays(6570),
-                    Cpf = _settings.DefaultUserLogin,
-                    Email = "some@email.com",
+                    Cpf = _settings.DefaultUserCpf,
+                    Email = _settings.DefaultUserEmail,
                     Name = "bob",
                     Password = _hash.Of(_settings.DefaultUserPassword),
                     Phone = "40028922",
                     SocialName = null
+                },
+                new User
+                {
+                    Active = false,
+                    BirthDate = DateTime.Now - TimeSpan.FromDays(14600),
+                    Cpf = _settings.SuperUserCpf,
+                    Email = _settings.SuperUserEmail,
+                    Name = "super bob",
+                    Password = _hash.Of(_settings.SuperUserPassword),
+                    Phone = "0101010101",
+                    SocialName = "root sudoer"
                 }
             };
 
@@ -96,7 +108,7 @@ namespace OOL_API.Data
             return users;
         }
 
-        private Employee[] CreateEmployees(StudioContext context, User user)
+        private void CreateEmployees(StudioContext context, IEnumerable<User> users)
         {
             var occupation = new Occupation
             {
@@ -107,24 +119,37 @@ namespace OOL_API.Data
             context.Occupations.Add(occupation);
             context.SaveChanges();
 
-            var employees = new[]{
+            var employees = new[]
+            {
                 new Employee
                 {
-                    AccessLevel = 1,
+                    AccessLevel = AccessLevel.Default,
                     Gender = "Attack Helicopter",
-                    OccupationId = occupation.Id,
-                    UserId = user.Cpf
+                    OccupationId = occupation.Id
+                },
+                new Employee
+                {
+                    AccessLevel = AccessLevel.Sudo,
+                    Gender = "IEEE 754 Standard for Floating-Point Arithmetic",
+                    OccupationId = occupation.Id
                 }
             };
 
-            foreach (var employee in employees) context.Employees.Add(employee);
+            foreach (var (employee, user) in employees.Zip(users))
+            {
+                employee.UserId = user.Cpf;
+
+                context.Employees.Add(employee);
+            }
+
             context.SaveChanges();
-            return employees;
         }
 
-        private Customer[] CreateCustomers(StudioContext context, User user)
+        private void CreateCustomers(StudioContext context)
         {
-            Cart cart = new Cart();
+            var user = context.Users.First();
+
+            var cart = new Cart();
             context.Carts.Add(cart); //DEFAULT VALUES EXCEPTION, MUST FIX
             context.SaveChanges();
 
@@ -138,12 +163,15 @@ namespace OOL_API.Data
             };
 
             foreach (var customer in customers) context.Customers.Add(customer);
+
             context.SaveChanges();
-            return customers;
         }
 
-        private Order[] CreateOrders(StudioContext context, Customer customer, Package package)
+        private void CreateOrders(StudioContext context)
         {
+            var customer = context.Customers.First();
+            var package = context.Packages.First();
+
             var order = new Order
             {
                 CartId = customer.CartId,
@@ -152,14 +180,11 @@ namespace OOL_API.Data
 
             context.Orders.Add(order);
             context.SaveChanges();
-            return new[] { order };
         }
 
-        private PhotoShoot[] CreatePhotoshoots(StudioContext context, Order order)
+        private void CreatePhotoshoots(StudioContext context)
         {
-            context.SaveChanges();
-
-            var employee = context.Employees.First();
+            var order = context.Orders.First();
 
             var shoots = new[]
             {
@@ -180,8 +205,8 @@ namespace OOL_API.Data
             };
 
             foreach (var photoShoot in shoots) context.PhotoShoots.Add(photoShoot);
+
             context.SaveChanges();
-            return shoots;
         }
     }
 }

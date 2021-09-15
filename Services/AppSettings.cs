@@ -18,7 +18,15 @@ namespace OOL_API.Services
 
         public string DefaultUserPassword { get; }
 
-        public string DefaultUserLogin { get; }
+        public string DefaultUserCpf { get; }
+
+        public string DefaultUserEmail { get; }
+
+        public string SuperUserCpf { get; }
+
+        public string SuperUserEmail { get; }
+
+        public string SuperUserPassword { get; }
 
         public bool RequireAuth { get; }
     }
@@ -44,13 +52,25 @@ namespace OOL_API.Services
 
             ResetDatabaseOnBoot = bool.Parse(configuration["ResetDatabaseOnBoot"] ?? "true");
 
-            DefaultUserLogin = configuration["DefaultUser:Login"]
-                               ?? throw Missing("DefaultUser.Login");
+            DefaultUserCpf = configuration["DefaultUser:Login"]
+                             ?? throw Missing("DefaultUser.Login");
+
+            DefaultUserEmail = configuration["DefaultUser:Email"]
+                               ?? throw Missing("DefaultUser.Email");
 
             DefaultUserPassword = configuration["DefaultUser:Password"]
                                   ?? throw Missing("DefaultUser.Password");
 
             RequireAuth = bool.Parse(configuration["RequireAuth"] ?? "false");
+
+            SuperUserCpf = configuration["SudoUser:Login"]
+                           ?? throw Missing("SudoUser.Login");
+
+            SuperUserEmail = configuration["SudoUser:Email"]
+                             ?? throw Missing("SudoUser:Email");
+
+            SuperUserPassword = configuration["SudoUser:Password"]
+                                ?? throw Missing("SudoUser.Password");
         }
 
         public string JwtIssuer { get; }
@@ -62,9 +82,17 @@ namespace OOL_API.Services
 
         public string DefaultUserPassword { get; }
 
-        public string DefaultUserLogin { get; }
+        public string DefaultUserEmail { get; }
+
+        public string DefaultUserCpf { get; }
 
         public bool RequireAuth { get; }
+
+        public string SuperUserCpf { get; }
+
+        public string SuperUserEmail { get; }
+
+        public string SuperUserPassword { get; }
 
 
         private KeyNotFoundException Missing(string key)
