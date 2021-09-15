@@ -16,6 +16,7 @@ using Microsoft.OpenApi.Models;
 using OOL_API.Data;
 using OOL_API.Models;
 using OOL_API.Services;
+using QRCoder;
 using static OOL_API.Services.PictureStorageFactory;
 
 namespace OOL_API
@@ -51,6 +52,13 @@ namespace OOL_API
             ConfigureHash(services);
 
             ConfigureAuth(services);
+
+            ConfigureQR(services);
+        }
+
+        private void ConfigureQR(IServiceCollection services)
+        {
+            services.AddScoped<QRCodeGenerator>();
         }
 
         private void ConfigureAuth(IServiceCollection services)
