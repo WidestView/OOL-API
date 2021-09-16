@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -57,6 +58,7 @@ namespace OOL_API.Models.DataTransfer
         public string Name { get; set; }
 
         [Required]
+        [Range(0, double.MaxValue)]
         public decimal Price { get; set; }
 
         [Required]
@@ -121,5 +123,25 @@ namespace OOL_API.Models.DataTransfer
         public string Name { get; }
 
         public string Description { get; }
+    }
+
+    public class InputEquipmentType
+    {
+        [Required]
+        [MaxLength(255)]
+        public string Name { get; set; }
+
+        [Required]
+        [MaxLength(255)]
+        public string Description { get; set; }
+
+        public EquipmentType ToModel()
+        {
+            return new EquipmentType
+            {
+                Name = Name,
+                Description = Description
+            };
+        }
     }
 }

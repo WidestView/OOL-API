@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
+using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
 
 namespace OOL_API.Controllers
@@ -96,12 +97,38 @@ namespace OOL_API.Controllers
             if (details == null) return NotFound();
 
             var equipment = input.ToModel();
+            equipment.Details = details;
 
             _context.Equipments.Add(equipment);
 
             _context.SaveChanges();
 
-            return Ok();
+            return Ok(new OutputEquipment(equipment, true));
+        }
+
+        [HttpGet]
+        [Route("types")]
+        public IEnumerable<OutputEquipmentType> ListEquipmentTypes()
+        {
+            return _context.EquipmentTypes.Select(type => new OutputEquipmentType(type));
+        }
+
+        [HttpPost]
+        [Route("add-type")]
+        public IActionResult AddEquipmentType(InputEquipmentType input)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new BadRequestObjectResult(input);
+            }
+
+            EquipmentType type = input.ToModel();
+
+            _context.EquipmentTypes.Add(type);
+
+            _context.SaveChanges();
+
+            return Ok(new OutputEquipmentType(type));
         }
     }
 }
