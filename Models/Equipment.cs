@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace OOL_API.Models
 {
@@ -12,7 +10,7 @@ namespace OOL_API.Models
         public int Id { get; set; }
 
         public DateTime Takeout { get; set; }
-        
+
         public DateTime PredictedDevolution { get; set; }
 
         public DateTime DefinitiveDevolution { get; set; }
@@ -32,11 +30,10 @@ namespace OOL_API.Models
         [Key]
         public int Id { get; set; }
 
-        public string QRCODE { get; set; } //TODO: THINK ABOUT THIS
-
         public bool Available { get; set; }
 
         public int DetailsId { get; set; }
+
         public EquipmentDetails Details { get; set; }
     }
 
@@ -50,12 +47,17 @@ namespace OOL_API.Models
         public decimal Price { get; set; }
 
         public int TypeId { get; set; }
+
         public EquipmentType Type { get; set; }
+
+        public IEnumerable<Equipment> Equipments { get; set; }
     }
 
     public class EquipmentType
     {
         [Key]
+        public int Id { get; set; }
+
         [MaxLength(255)]
         public string Name { get; set; }
 
