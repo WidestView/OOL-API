@@ -6,9 +6,10 @@ namespace OOL_API.Models
     {
         [Key]
         public string UserId { get; set; }
+
         public User User { get; set; }
 
-        public int AccessLevel { get; set; }
+        public AccessLevel AccessLevel { get; set; }
 
         public string Gender { get; set; }
 
@@ -18,9 +19,13 @@ namespace OOL_API.Models
         public Occupation Occupation { get; set; }
     }
 
-    public enum Tags { HIRING, FIRING }
+    public enum Tags
+    {
+        HIRING,
+        FIRING
+    }
 
-    public class ImportantAction 
+    public class ImportantAction
     {
         [Key]
         public int Id { get; set; }

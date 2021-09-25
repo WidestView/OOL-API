@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -10,6 +11,8 @@ using OOL_API.Data;
 using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
 using OOL_API.Services;
+
+#nullable enable
 
 namespace OOL_API.Controllers
 {
@@ -39,7 +42,9 @@ namespace OOL_API.Controllers
 
             if (user == null) return Unauthorized();
 
-            var token = GenerateToken(user.Cpf!);
+            var accessLevel = FindUserAccessLevel(user);
+
+            var token = GenerateToken(user.Cpf!, accessLevel);
 
             return Ok(new {token});
         }
@@ -52,7 +57,8 @@ namespace OOL_API.Controllers
         {
             var user = HttpContext.User;
 
-            var username = user.Claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sid);
+            var username = user.Claims.FirstOrDefault(
+                claim => claim.Type == JwtRegisteredClaimNames.Sid);
 
             if (username == null) return Unauthorized();
 
@@ -63,17 +69,34 @@ namespace OOL_API.Controllers
             return Ok($"Hello, {userWithLogin.Name}");
         }
 
+        [Authorize(Roles = AccessLevelInfo.SudoString)]
+        [HttpGet]
+        [Route("sudo-greet")]
+        public IActionResult SudoGreet()
+        {
+            return Greet();
+        }
+
         private User? AuthenticateUser(InputLogin login)
         {
-            var employee = FindUserWithLogin(login.Login);
+            var user = FindUserWithLogin(login.Login);
 
             var hash = _passwordHash.Of(login.Password);
 
-            if (employee != null)
-                if (employee.Password != hash)
-                    employee = null;
+            if (user != null)
+                if (user.Password != hash)
+                    user = null;
 
-            return employee;
+            return user;
+        }
+
+        private string? FindUserAccessLevel(User user)
+        {
+            var employee = _context.Employees.Find(user.Cpf);
+
+            if (employee == null)
+                return null;
+            return AccessLevelInfo.Strings[employee.AccessLevel];
         }
 
         private User? FindUserWithLogin(string login)
@@ -83,7 +106,7 @@ namespace OOL_API.Controllers
             );
         }
 
-        private string GenerateToken(string username)
+        private string GenerateToken(string username, string? accessLevel = null)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.JwtKey));
 
@@ -91,10 +114,7 @@ namespace OOL_API.Controllers
 
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sid, username)
-            };
+            var claims = GetClaims(username, accessLevel);
 
             var token = new JwtSecurityToken(
                 issuer,
@@ -105,6 +125,18 @@ namespace OOL_API.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private static IEnumerable<Claim> GetClaims(string username, string? accessLevel)
+        {
+            var claims = new List<Claim>(2)
+            {
+                new Claim(JwtRegisteredClaimNames.Sid, username)
+            };
+
+            if (accessLevel != null) claims.Add(new Claim("roles", accessLevel));
+
+            return claims;
         }
     }
 }
