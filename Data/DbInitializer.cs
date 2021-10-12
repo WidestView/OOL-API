@@ -38,6 +38,8 @@ namespace OOL_API.Data
             CreateOrders(context);
 
             CreatePhotoshoots(context);
+
+            CreateEquipments(context);
         }
 
         private void CreatePackages(StudioContext context)
@@ -230,6 +232,44 @@ namespace OOL_API.Data
             };
 
             foreach (var photoShoot in shoots) context.PhotoShoots.Add(photoShoot);
+
+            context.SaveChanges();
+        }
+
+        private void CreateEquipments(StudioContext context)
+        {
+            var type = new EquipmentType
+            {
+                Name = "Good Camera",
+                Description = "A high quality camera"
+            };
+
+            context.EquipmentTypes.Add(type);
+
+            context.SaveChanges();
+
+            var details = new EquipmentDetails
+            {
+                Name = "Kodak Camera 0xIDK",
+                Price = 400.00m,
+                TypeId = type.Id
+            };
+
+            context.SaveChanges();
+
+            context.EquipmentDetails.Add(details);
+
+            var equipments = new[]
+            {
+                new Equipment
+                {
+                    Available = true,
+                    Details = details,
+                    DetailsId = details.Id
+                }
+            };
+
+            foreach (var equipment in equipments) context.Equipments.Add(equipment);
 
             context.SaveChanges();
         }
