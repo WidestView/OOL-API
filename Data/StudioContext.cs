@@ -49,7 +49,7 @@ namespace OOL_API.Data
             RelateTables(builder);
         }
 
-        private void NameTables(ModelBuilder builder) 
+        private void NameTables(ModelBuilder builder)
         {
             builder.Entity<Package>().ToTable("Package");
 
@@ -82,7 +82,7 @@ namespace OOL_API.Data
             builder.Entity<EquipmentType>().ToTable("EquipmentType");
         }
 
-        private void RelateTables(ModelBuilder builder) 
+        private void RelateTables(ModelBuilder builder)
         {
             builder.Entity<PhotoShootImage>()
                 .HasOne(image => image.PhotoShoot)
@@ -97,10 +97,10 @@ namespace OOL_API.Data
                 .IsRequired();
 
             builder.Entity<Order>()
-               .HasOne(order => order.Package)
-               .WithMany()
-               .HasForeignKey(order => order.PackageId)
-               .IsRequired();
+                .HasOne(order => order.Package)
+                .WithMany()
+                .HasForeignKey(order => order.PackageId)
+                .IsRequired();
 
             builder.Entity<Order>()
                 .HasOne(order => order.Cart)

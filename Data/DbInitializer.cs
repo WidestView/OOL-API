@@ -82,7 +82,7 @@ namespace OOL_API.Data
                 new User
                 {
                     Active = true,
-                    BirthDate = DateTime.Now - TimeSpan.FromDays(6570),
+                    BirthDate = DateTime.UtcNow - TimeSpan.FromDays(6570),
                     Cpf = _settings.DefaultUserCpf,
                     Email = _settings.DefaultUserEmail,
                     Name = "bob",
@@ -93,7 +93,7 @@ namespace OOL_API.Data
                 new User
                 {
                     Active = false,
-                    BirthDate = DateTime.Now - TimeSpan.FromDays(14600),
+                    BirthDate = DateTime.UtcNow - TimeSpan.FromDays(14600),
                     Cpf = _settings.SuperUserCpf,
                     Email = _settings.SuperUserEmail,
                     Name = "super bob",
@@ -125,12 +125,14 @@ namespace OOL_API.Data
                 {
                     AccessLevel = AccessLevel.Default,
                     Gender = "Attack Helicopter",
+                    Rg = "102010102010",
                     OccupationId = occupation.Id
                 },
                 new Employee
                 {
                     AccessLevel = AccessLevel.Sudo,
                     Gender = "IEEE 754 Standard for Floating-Point Arithmetic",
+                    Rg = "102010102010",
                     OccupationId = occupation.Id
                 }
             };
@@ -186,21 +188,44 @@ namespace OOL_API.Data
         {
             var order = context.Orders.First();
 
+            var employee = context.Employees.First();
+
             var shoots = new[]
             {
                 new PhotoShoot
                 {
-                    Address = "localhost avenue",
+                    Address = "localhost Avenue",
                     Duration = TimeSpan.FromHours(1),
+                    Start = DateTime.UtcNow + TimeSpan.FromHours(2),
                     OrderId = order.Id,
-                    ResourceId = Guid.Parse("5a60a77f-e51b-4aa6-7b3c-08d94570814c")
+                    Employees = new List<Employee> {employee}
                 },
 
                 new PhotoShoot
                 {
-                    Address = "127001 street",
+                    Address = "127001 Street",
                     Duration = TimeSpan.FromHours(1),
-                    OrderId = order.Id
+                    Start = DateTime.UtcNow - TimeSpan.FromHours(1),
+                    OrderId = order.Id,
+                    Employees = new List<Employee> {employee}
+                },
+
+                new PhotoShoot
+                {
+                    Address = "0.0.0.0 City",
+                    Duration = TimeSpan.FromHours(1),
+                    Start = DateTime.UtcNow + TimeSpan.FromDays(7),
+                    OrderId = order.Id,
+                    Employees = new List<Employee> {employee}
+                },
+
+                new PhotoShoot
+                {
+                    Address = "::1 Town",
+                    Duration = TimeSpan.FromHours(1),
+                    Start = DateTime.UtcNow + TimeSpan.FromDays(3),
+                    OrderId = order.Id,
+                    Employees = new List<Employee> {employee}
                 }
             };
 

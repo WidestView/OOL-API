@@ -39,6 +39,7 @@ namespace OOL_API.Services
 
             var employee = _context.Employees
                 .Include(e => e.User)
+                .Include(e => e.Occupation)
                 .FirstOrDefault(e => e.UserId == user.Cpf);
 
             return employee;

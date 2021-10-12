@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Net.Mime;
-using System.Text.Json.Serialization;
 
 namespace OOL_API.Models.DataTransfer
 {
@@ -35,18 +33,6 @@ namespace OOL_API.Models.DataTransfer
 
     public class OutputPhotoShoot
     {
-        public Guid Id { get; } = Guid.NewGuid();
-
-        public int OrderId { get; }
-
-        public string Address { get; }
-
-        public DateTime Start { get; }
-
-        public uint DurationMinutes { get; }
-
-        public IEnumerable<OutputPhotoShootImage> Images { get; }
-
         public OutputPhotoShoot(PhotoShoot photoShoot, bool withReferences)
         {
             Id = photoShoot.ResourceId;
@@ -59,5 +45,17 @@ namespace OOL_API.Models.DataTransfer
                 ? photoShoot.Images.Select(image => new OutputPhotoShootImage(image, false))
                 : null;
         }
+
+        public Guid Id { get; }
+
+        public int OrderId { get; }
+
+        public string Address { get; }
+
+        public DateTime Start { get; }
+
+        public uint DurationMinutes { get; }
+
+        public IEnumerable<OutputPhotoShootImage> Images { get; }
     }
 }

@@ -16,7 +16,7 @@ namespace OOL_API.Models.DataTransfer
             OccupationId = employee.OccupationId;
             Occupation = employee.Occupation;
             Gender = employee.Gender;
-            RG = employee.RG;
+            Rg = employee.Rg;
         }
 
         public string Cpf { get; }
@@ -39,6 +39,6 @@ namespace OOL_API.Models.DataTransfer
 
         public string Gender { get; }
 
-        public string RG { get; }
+        public string Rg { get; }
     }
 }

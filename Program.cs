@@ -42,13 +42,16 @@ namespace OOL_API
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>()
+                        .UseUrls("http://*:5000");
+                });
         }
 
 #endif
 
 #if !DEBUG
-
         public static IHostBuilder CreateHostBuilder(string[] args) =>
            Host.CreateDefaultBuilder(args)
                .ConfigureWebHostDefaults(webBuilder =>
@@ -59,6 +62,5 @@ namespace OOL_API
                    .UseUrls("http://*:" + port);
                });
 #endif
-
     }
 }

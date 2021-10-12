@@ -65,6 +65,8 @@ namespace OOL_API.Controllers
             {
                 var shot = input.ToPhotoShoot();
 
+                if (_context.Orders.Find(shot.OrderId) == null) return NotFound();
+
                 _context.PhotoShoots.Add(shot);
 
                 _context.SaveChanges();
