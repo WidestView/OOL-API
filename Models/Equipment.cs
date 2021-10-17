@@ -48,7 +48,10 @@ namespace OOL_API.Models
 
         public int TypeId { get; set; }
 
+        [Required]
         public EquipmentType Type { get; set; }
+
+        public int Quantity { get; set; }
 
         public IEnumerable<Equipment> Equipments { get; set; }
     }

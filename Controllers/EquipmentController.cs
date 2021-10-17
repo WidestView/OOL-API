@@ -55,13 +55,22 @@ namespace OOL_API.Controllers
         [HttpGet]
         public IEnumerable<OutputEquipment> ListEquipments()
         {
-            var result = _context.Equipments
-                .Include(row => row.Details)
-                .Select(
-                    row => new OutputEquipment(row, true)
-                ).ToList();
+            var result = _context.Equipments.ToList();
 
-            return result;
+            foreach (var row in result) {
+                _context.Entry(row).Reference(row => row.Details).Load();
+                _context.Entry(row.Details).Reference(details => details.Type).Load();
+
+                row.Details.Type.Name.ToString();
+            }
+
+            return result.Select(row => new OutputEquipment(row, false) 
+                    {
+                        Details = new OutputEquipmentDetails(row.Details, false) 
+                        {
+                            Type = new OutputEquipmentType(row.Details.Type)
+                        }
+                    });
         }
 
         [HttpPost]

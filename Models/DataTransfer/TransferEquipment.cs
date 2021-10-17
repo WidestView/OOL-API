@@ -36,10 +36,12 @@ namespace OOL_API.Models.DataTransfer
             DetailsId = equipment.DetailsId;
 
             if (withReferences && equipment.Details != null)
+            {
                 Details = new OutputEquipmentDetails(
                     equipment.Details,
                     false
                 );
+            }
         }
 
         public int Id { get; }
@@ -48,7 +50,7 @@ namespace OOL_API.Models.DataTransfer
 
         public int DetailsId { get; }
 
-        public OutputEquipmentDetails Details { get; }
+        public OutputEquipmentDetails Details { get; set; }
     }
 
     public class InputEquipmentDetails
@@ -104,9 +106,9 @@ namespace OOL_API.Models.DataTransfer
 
         public int TypeId { get; }
 
-        public OutputEquipmentType Type { get; }
+        public OutputEquipmentType Type { get; set; }
 
-        public IEnumerable<OutputEquipment> Equipments { get; }
+        public IEnumerable<OutputEquipment> Equipments { get; set; }
     }
 
     public class OutputEquipmentType
