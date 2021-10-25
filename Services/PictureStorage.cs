@@ -9,4 +9,11 @@ namespace OOL_API.Services
         public void PostPicture(Stream stream, TModel model);
     }
 
+    public interface IPictureStorageInfo
+    {
+        public static bool IsSupported(string contentType)
+        {
+            return contentType == "image/jpeg";
+        }
+    }
 }

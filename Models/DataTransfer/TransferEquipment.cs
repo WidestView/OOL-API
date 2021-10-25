@@ -16,7 +16,7 @@ namespace OOL_API.Models.DataTransfer
         [Required]
         public int DetailsId { get; set; }
 
-        public Equipment ToModel()
+        public virtual Equipment ToModel()
         {
             return new Equipment
             {
@@ -25,21 +25,40 @@ namespace OOL_API.Models.DataTransfer
                 DetailsId = DetailsId
             };
         }
+
+        public class ForUpdate : InputEquipment
+        {
+            [Required]
+            public int Id { get; set; }
+        }
     }
+
 
     public class OutputEquipment
     {
-        public OutputEquipment(Equipment equipment, bool withReferences)
+        [Flags]
+        public enum Flags
+        {
+            None = 0,
+            Details = 1 << 0,
+            All = Details
+        }
+
+        public OutputEquipment(
+            Equipment equipment,
+            Flags flags = 0,
+            OutputEquipmentDetails.Flags detailsFlags = 0
+        )
         {
             Id = equipment.Id;
             Available = equipment.Available;
             DetailsId = equipment.DetailsId;
 
-            if (withReferences && equipment.Details != null)
+            if ((flags & Flags.Details) != 0 && equipment.Details != null)
             {
                 Details = new OutputEquipmentDetails(
-                    equipment.Details,
-                    false
+                    details: equipment.Details,
+                    flags: detailsFlags
                 );
             }
         }
@@ -60,7 +79,7 @@ namespace OOL_API.Models.DataTransfer
         public string Name { get; set; }
 
         [Required]
-        [Range(0, double.MaxValue)]
+        [Range(minimum: 0, maximum: double.MaxValue)]
         public decimal Price { get; set; }
 
         [Required]
@@ -77,26 +96,52 @@ namespace OOL_API.Models.DataTransfer
                 Type = null
             };
         }
+
+        public class ForUpdate : InputEquipmentDetails
+        {
+            [Required]
+            public int Id { get; set; }
+        }
     }
+
 
     public class OutputEquipmentDetails
     {
-        public OutputEquipmentDetails(EquipmentDetails details, bool withReferences)
+        [Flags]
+        public enum Flags
+        {
+            None = 0,
+
+            Type = 1 << 0,
+
+            Equipments = 1 << 1,
+
+            All = Type | Equipments
+        }
+
+        public OutputEquipmentDetails(
+            EquipmentDetails details,
+            Flags flags = 0,
+            OutputEquipment.Flags equipmentFlags = 0
+        )
         {
             Id = details.Id;
             Name = details.Name;
             Price = details.Price;
             TypeId = details.TypeId;
 
-            if (withReferences)
+            if ((flags & Flags.Type) != 0 && details.Type != null)
             {
-                if (details.Type != null) Type = new OutputEquipmentType(details.Type);
+                Type = new OutputEquipmentType(details.Type);
+            }
 
-                if (details.Equipments != null)
-                    Equipments = details.Equipments
-                        .Select(equipment => new OutputEquipment(equipment, false));
+            if ((flags & Flags.Equipments) != 0 && details.Equipments != null)
+            {
+                Equipments = details.Equipments
+                    .Select(equipment => new OutputEquipment(equipment: equipment, flags: equipmentFlags));
             }
         }
+
 
         public int Id { get; }
 

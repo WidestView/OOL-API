@@ -18,26 +18,31 @@ namespace OOL_API.Controllers
         // todo: use proper url retrieval method
         private const string ApiUrl = "http://localhost:5000";
 
-        private readonly IPictureStorage<PhotoShootImage, Guid> _pictureStorage;
-
         private readonly StudioContext _context;
+
+        private readonly IPictureStorage<PhotoShootImage, Guid> _pictureStorage;
 
         public PhotoShootImageController(
             IPictureStorage<PhotoShootImage, Guid> pictureStorage,
             StudioContext context
-        ) => (_pictureStorage, _context) = (pictureStorage, context);
+        )
+        {
+            (_pictureStorage, _context) = (pictureStorage, context);
+        }
 
 #if DEBUG
 
         [HttpGet]
         public IActionResult ListImages()
-            => Json(_context.PhotoShootImages.Select(img => img.Id).Select(id =>
+        {
+            return Json(_context.PhotoShootImages.Select(img => img.Id).Select(id =>
                 new
                 {
                     id,
                     url = $"{ApiUrl}{Url.Action("GetImageContent", new {id})}"
                 }
             ));
+        }
 
 #endif
 
@@ -48,7 +53,7 @@ namespace OOL_API.Controllers
 
             if (content != null)
             {
-                return File(content, "image/jpeg");
+                return File(fileContents: content, contentType: "image/jpeg");
             }
 
             return NotFound();
@@ -67,7 +72,7 @@ namespace OOL_API.Controllers
             }
 
             return Json(
-                new OutputPhotoShootImage(image, true)
+                new OutputPhotoShootImage(image: image, withReferences: true)
             );
         }
 
@@ -75,7 +80,7 @@ namespace OOL_API.Controllers
         [HttpPost("upload/{photoShootResourceId}")]
         public IActionResult UploadImage(Guid photoShootResourceId, [FromForm] IFormFile file)
         {
-            if (!IsValid(file))
+            if (IPictureStorageInfo.IsSupported(file.ContentType))
             {
                 return StatusCode(400);
             }
@@ -91,12 +96,12 @@ namespace OOL_API.Controllers
 
             RegisterPhotoShootImage(image);
 
-            SavePhotoShootImage(file, image);
+            SavePhotoShootImage(file: file, image: image);
 
             return CreatedAtAction(
-                "GetImageData",
-                new {id = image.Id},
-                new OutputPhotoShootImage(image, true)
+                actionName: "GetImageData",
+                routeValues: new {id = image.Id},
+                value: new OutputPhotoShootImage(image: image, withReferences: true)
             );
         }
 
@@ -114,7 +119,7 @@ namespace OOL_API.Controllers
         {
             using var stream = file.OpenReadStream();
 
-            _pictureStorage.PostPicture(stream, image);
+            _pictureStorage.PostPicture(stream: stream, model: image);
         }
 
         private void RegisterPhotoShootImage(PhotoShootImage image)
@@ -129,11 +134,6 @@ namespace OOL_API.Controllers
         private PhotoShoot FindPhotoShoot(Guid photoShootResourceId)
         {
             return _context.PhotoShoots.FirstOrDefault(shoot => shoot.ResourceId == photoShootResourceId);
-        }
-
-        private static bool IsValid(IFormFile file)
-        {
-            return file?.ContentType == "image/jpeg";
         }
     }
 }
