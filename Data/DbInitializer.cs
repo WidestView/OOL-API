@@ -19,19 +19,25 @@ namespace OOL_API.Data
 
         public void Initialize(StudioContext context)
         {
-            if (_settings.ResetDatabaseOnBoot) context.Database.EnsureDeleted();
+            if (_settings.ResetDatabaseOnBoot)
+            {
+                context.Database.EnsureDeleted();
+            }
 
             context.Database.EnsureCreated();
 
             var alreadyInitialized = context.Packages.Any();
 
-            if (alreadyInitialized) return;
+            if (alreadyInitialized)
+            {
+                return;
+            }
 
             CreatePackages(context);
 
             var users = CreateUsers(context);
 
-            CreateEmployees(context, users);
+            CreateEmployees(context: context, users: users);
 
             CreateCustomers(context);
 
@@ -72,7 +78,10 @@ namespace OOL_API.Data
                 }
             };
 
-            foreach (var p in packages) context.Packages.Add(p);
+            foreach (var p in packages)
+            {
+                context.Packages.Add(p);
+            }
 
             context.SaveChanges();
         }
@@ -105,7 +114,11 @@ namespace OOL_API.Data
                 }
             };
 
-            foreach (var user in users) context.Users.Add(user);
+            foreach (var user in users)
+            {
+                context.Users.Add(user);
+            }
+
             context.SaveChanges();
             return users;
         }
@@ -166,7 +179,10 @@ namespace OOL_API.Data
                 }
             };
 
-            foreach (var customer in customers) context.Customers.Add(customer);
+            foreach (var customer in customers)
+            {
+                context.Customers.Add(customer);
+            }
 
             context.SaveChanges();
         }
@@ -231,22 +247,40 @@ namespace OOL_API.Data
                 }
             };
 
-            foreach (var photoShoot in shoots) context.PhotoShoots.Add(photoShoot);
+            foreach (var photoShoot in shoots)
+            {
+                context.PhotoShoots.Add(photoShoot);
+            }
 
             context.SaveChanges();
         }
 
         private void CreateEquipments(StudioContext context)
         {
-            var type = new EquipmentType
+            var types = new[]
             {
-                Name = "Good Camera",
-                Description = "A high quality camera"
+                new EquipmentType
+                {
+                    Name = "Good Camera",
+                    Description = "A high quality camera"
+                },
+
+                new EquipmentType
+                {
+                    Name = "Better Camera",
+                    Description = "A higher quality camera"
+                }
             };
 
-            context.EquipmentTypes.Add(type);
+            foreach (var t in types)
+            {
+                context.EquipmentTypes.Add(t);
+            }
 
             context.SaveChanges();
+
+            var type = types.First();
+
 
             var details = new EquipmentDetails
             {
@@ -269,7 +303,10 @@ namespace OOL_API.Data
                 }
             };
 
-            foreach (var equipment in equipments) context.Equipments.Add(equipment);
+            foreach (var equipment in equipments)
+            {
+                context.Equipments.Add(equipment);
+            }
 
             context.SaveChanges();
         }
