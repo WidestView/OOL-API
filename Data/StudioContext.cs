@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using OOL_API.Models;
 
 namespace OOL_API.Data
@@ -38,6 +39,16 @@ namespace OOL_API.Data
         public DbSet<EquipmentDetails> EquipmentDetails { get; set; }
 
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
+
+        public int CountEquipmentWithDetails(EquipmentDetails details)
+        {
+            if (details == null)
+            {
+                return 0;
+            }
+
+            return Equipments.Count(e => e.DetailsId == details.Id);
+        }
 
 
         protected override void OnModelCreating(ModelBuilder builder)

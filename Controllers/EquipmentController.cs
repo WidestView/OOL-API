@@ -15,9 +15,19 @@ namespace OOL_API.Controllers
 
         private readonly StudioContext _context;
 
+        private readonly OutputEquipmentHandler _equipmentHandler;
+
         public EquipmentController(StudioContext context)
         {
             _context = context;
+
+            var detailsHandler = new OutputEquipmentDetailsHandler(context);
+            var equipmentHandler = new OutputEquipmentHandler(context);
+
+            detailsHandler.EquipmentHandler = equipmentHandler;
+            equipmentHandler.DetailsHandler = detailsHandler;
+
+            _equipmentHandler = equipmentHandler;
         }
 
         [HttpGet]
@@ -31,10 +41,7 @@ namespace OOL_API.Controllers
                 _context.Entry(row.Details).Reference(item => item.Type).Load();
             }
 
-            return result.Select(row => new OutputEquipment(
-                equipment: row,
-                flags: OutputEquipment.Flags.All,
-                detailsFlags: DetailsReferenceFlags));
+            return result.Select(_equipmentHandler.OutputFor);
         }
 
         [HttpPost]
@@ -59,8 +66,7 @@ namespace OOL_API.Controllers
 
             _context.SaveChanges();
 
-            return Ok(new OutputEquipment(equipment: equipment, flags: OutputEquipment.Flags.All,
-                detailsFlags: DetailsReferenceFlags));
+            return Ok(_equipmentHandler.OutputFor(equipment));
         }
 
         [HttpPut]
@@ -105,8 +111,7 @@ namespace OOL_API.Controllers
 
             _context.Entry(equipment.Details).Reference(item => item.Type).Load();
 
-            return Ok(new OutputEquipment(equipment: equipment, flags: OutputEquipment.Flags.All,
-                detailsFlags: DetailsReferenceFlags));
+            return Ok(_equipmentHandler.OutputFor(equipment));
         }
 
         [HttpGet]

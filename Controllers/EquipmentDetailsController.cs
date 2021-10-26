@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
@@ -16,26 +15,32 @@ namespace OOL_API.Controllers
     {
         private readonly StudioContext _context;
 
+        private readonly OutputEquipmentDetailsHandler _detailsHandler;
+
         private readonly IPictureStorage<EquipmentDetails, int> _pictureStorage;
 
         public EquipmentDetailsController(StudioContext context, IPictureStorage<EquipmentDetails, int> pictureStorage)
         {
             _context = context;
             _pictureStorage = pictureStorage;
+
+            var detailsHandler = new OutputEquipmentDetailsHandler(context);
+
+            var equipmentHandler = new OutputEquipmentHandler(context);
+
+            detailsHandler.EquipmentHandler = equipmentHandler;
+            equipmentHandler.DetailsHandler = detailsHandler;
+
+            _detailsHandler = detailsHandler;
         }
 
         [HttpGet]
         public IEnumerable<OutputEquipmentDetails> ListDetails()
         {
             var result = _context.EquipmentDetails
-                .Where(details => !details.IsArchived)
-                .Include(row => row.Type)
-                .ToList();
+                .Where(details => !details.IsArchived).ToList();
 
-
-            return result.Select(
-                row => new OutputEquipmentDetails(details: row, flags: OutputEquipmentDetails.Flags.All)
-            );
+            return result.Select(_detailsHandler.OutputFor);
         }
 
         [HttpGet]
@@ -57,7 +62,7 @@ namespace OOL_API.Controllers
                 details => details.Type
             ).Load();
 
-            return Ok(new OutputEquipmentDetails(details: result, flags: OutputEquipmentDetails.Flags.All));
+            return Ok(_detailsHandler.OutputFor(result));
         }
 
         [HttpPost]
@@ -84,7 +89,8 @@ namespace OOL_API.Controllers
             return CreatedAtAction(
                 actionName: nameof(GetDetails),
                 routeValues: new {id = details.Id},
-                value: new OutputEquipmentDetails(details: details, flags: OutputEquipmentDetails.Flags.All));
+                value: _detailsHandler.OutputFor(details)
+            );
         }
 
         [HttpPut]

@@ -53,8 +53,6 @@ namespace OOL_API.Models
         [Required]
         public EquipmentType Type { get; set; }
 
-        public int Quantity { get; set; }
-
         public IEnumerable<Equipment> Equipments { get; set; }
 
         public bool IsArchived { get; set; }
