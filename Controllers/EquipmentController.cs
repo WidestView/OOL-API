@@ -23,7 +23,7 @@ namespace OOL_API.Controllers
         [HttpGet]
         public IEnumerable<OutputEquipment> ListEquipments()
         {
-            var result = _context.Equipments.ToList();
+            var result = _context.Equipments.Where(equipment => !equipment.IsArchived).ToList();
 
             foreach (var row in result)
             {
@@ -113,7 +113,9 @@ namespace OOL_API.Controllers
         [Route("types")]
         public IEnumerable<OutputEquipmentType> ListEquipmentTypes()
         {
-            return _context.EquipmentTypes.Select(type => new OutputEquipmentType(type));
+            return _context.EquipmentTypes
+                .Where(type => !type.IsArchived)
+                .Select(type => new OutputEquipmentType(type));
         }
 
         [HttpPost]

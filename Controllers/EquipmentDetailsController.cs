@@ -28,6 +28,7 @@ namespace OOL_API.Controllers
         public IEnumerable<OutputEquipmentDetails> ListDetails()
         {
             var result = _context.EquipmentDetails
+                .Where(details => !details.IsArchived)
                 .Include(row => row.Type)
                 .ToList();
 
@@ -129,7 +130,7 @@ namespace OOL_API.Controllers
                 return NotFound();
             }
 
-            using var stream = file.OpenReadStream();
+            using var stream = file!.OpenReadStream();
 
             _pictureStorage.PostPicture(stream: stream, model: entry);
 
@@ -148,6 +149,22 @@ namespace OOL_API.Controllers
             }
 
             return File(fileContents: content, contentType: "image/jpeg");
+        }
+
+        [HttpGet]
+        [Route("archive/{id}")]
+        public IActionResult Archive(int id)
+        {
+            var entry = _context.EquipmentDetails.Find(id);
+
+            if (entry == null)
+            {
+                return NotFound();
+            }
+
+            entry.IsArchived = true;
+
+            return Ok();
         }
     }
 }

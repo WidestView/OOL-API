@@ -35,6 +35,8 @@ namespace OOL_API.Models
         public int DetailsId { get; set; }
 
         public EquipmentDetails Details { get; set; }
+
+        public bool IsArchived { get; set; } = false;
     }
 
     public class EquipmentDetails
@@ -54,6 +56,8 @@ namespace OOL_API.Models
         public int Quantity { get; set; }
 
         public IEnumerable<Equipment> Equipments { get; set; }
+
+        public bool IsArchived { get; set; }
     }
 
     public class EquipmentType
@@ -65,5 +69,7 @@ namespace OOL_API.Models
         public string Name { get; set; }
 
         public string Description { get; set; }
+
+        public bool IsArchived { get; set; } = false;
     }
 }
