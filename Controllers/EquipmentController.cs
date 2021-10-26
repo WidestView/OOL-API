@@ -88,12 +88,11 @@ namespace OOL_API.Controllers
             var updated = input.ToModel();
 
             current.Available = updated.Available;
-            current.Details = updated.Details;
             current.DetailsId = updated.DetailsId;
 
             _context.SaveChanges();
 
-            return Ok();
+            return Ok(_equipmentHandler.OutputFor(current));
         }
 
         [HttpGet]

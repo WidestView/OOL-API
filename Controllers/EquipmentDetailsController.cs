@@ -102,22 +102,22 @@ namespace OOL_API.Controllers
                 return new BadRequestObjectResult(input);
             }
 
-            var entry = _context.EquipmentDetails.Find(id);
+            var current = _context.EquipmentDetails.Find(id);
 
-            if (entry == null)
+            if (current == null)
             {
                 return NotFound();
             }
 
             var updated = input.ToModel();
 
-            input.Name = updated.Name;
-            input.Price = updated.Price;
-            input.TypeId = updated.TypeId;
+            current.Name = updated.Name;
+            current.Price = updated.Price;
+            current.TypeId = updated.TypeId;
 
             _context.SaveChanges();
 
-            return Ok(entry);
+            return Ok(_detailsHandler.OutputFor(current));
         }
 
         [HttpPost]
