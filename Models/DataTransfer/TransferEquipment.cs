@@ -25,12 +25,6 @@ namespace OOL_API.Models.DataTransfer
                 DetailsId = DetailsId
             };
         }
-
-        public class ForUpdate : InputEquipment
-        {
-            [Required]
-            public int Id { get; set; }
-        }
     }
 
 
@@ -95,12 +89,6 @@ namespace OOL_API.Models.DataTransfer
                 TypeId = TypeId,
                 Type = null
             };
-        }
-
-        public class ForUpdate : InputEquipmentDetails
-        {
-            [Required]
-            public int Id { get; set; }
         }
     }
 

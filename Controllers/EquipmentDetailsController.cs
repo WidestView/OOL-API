@@ -38,7 +38,7 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
-        [Route("details/{id}")]
+        [Route("{id}")]
         public IActionResult GetDetails(int id)
         {
             var result = _context.EquipmentDetails.Find(id);
@@ -60,7 +60,7 @@ namespace OOL_API.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddEquipmentDetails(InputEquipmentDetails input)
+        public IActionResult AddEquipmentDetails([FromBody] InputEquipmentDetails input)
         {
             if (!ModelState.IsValid)
             {
@@ -87,14 +87,15 @@ namespace OOL_API.Controllers
         }
 
         [HttpPut]
-        public IActionResult UpdateDetails(InputEquipmentDetails.ForUpdate input)
+        [Route("{id}")]
+        public IActionResult UpdateDetails(int id, [FromBody] InputEquipmentDetails input)
         {
             if (!ModelState.IsValid)
             {
                 return new BadRequestObjectResult(input);
             }
 
-            var entry = _context.EquipmentDetails.Find();
+            var entry = _context.EquipmentDetails.Find(id);
 
             if (entry == null)
             {
@@ -116,7 +117,7 @@ namespace OOL_API.Controllers
         [Route("image/{id}")]
         public IActionResult PostImage(int id, [FromForm] IFormFile file)
         {
-            if (!IPictureStorageInfo.IsSupported(file.ContentType))
+            if (!IPictureStorageInfo.IsSupported(file?.ContentType))
             {
                 return StatusCode(400);
             }

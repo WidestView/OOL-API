@@ -64,14 +64,15 @@ namespace OOL_API.Controllers
         }
 
         [HttpPut]
-        public IActionResult UpdateEquipment(InputEquipment.ForUpdate input)
+        [Route("{id}")]
+        public IActionResult UpdateEquipment(int id, [FromBody] InputEquipment input)
         {
             if (!ModelState.IsValid)
             {
                 return new BadRequestObjectResult(input);
             }
 
-            var current = _context.Equipments.Find(input.Id);
+            var current = _context.Equipments.Find(id);
 
             if (current == null)
             {
