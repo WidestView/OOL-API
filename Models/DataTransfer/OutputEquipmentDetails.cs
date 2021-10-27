@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using OOL_API.Data;
 using static OOL_API.Models.DataTransfer.OutputEquipmentDetails;
 
@@ -22,12 +24,13 @@ namespace OOL_API.Models.DataTransfer
 
         public OutputEquipmentHandler EquipmentHandler { get; set; }
 
-        public OutputEquipmentDetails OutputFor(EquipmentDetails details)
+        public Task<OutputEquipmentDetails> OutputFor(EquipmentDetails details, CancellationToken token = default)
         {
-            return Create(details: details, flags: _outputFlags);
+            return Create(details, _outputFlags, token);
         }
 
-        public OutputEquipmentDetails Create(EquipmentDetails details, Flags flags)
+        public async Task<OutputEquipmentDetails> Create(EquipmentDetails details, Flags flags,
+            CancellationToken token = default)
         {
             var result = new OutputEquipmentDetails
             {
@@ -41,10 +44,10 @@ namespace OOL_API.Models.DataTransfer
             {
                 if (details.Type == null)
                 {
-                    _context
+                    await _context
                         .Entry(details)
                         .Reference(row => row.Type)
-                        .Load();
+                        .LoadAsync(token);
                 }
 
                 result.Type = new OutputEquipmentType(details.Type);
@@ -57,14 +60,18 @@ namespace OOL_API.Models.DataTransfer
 
                 if (details.Equipments == null)
                 {
-                    _context
+                    await _context
                         .Entry(details)
                         .Collection(row => row.Equipments)
-                        .Load();
+                        .LoadAsync(token);
                 }
 
-                result.Equipments = details.Equipments!
-                    .Select(equipment => EquipmentHandler.Create(equipment: equipment, flags: _equipmentFlags));
+                var equipments = details.Equipments!
+                    .Select(async equipment =>
+                        await EquipmentHandler.Create(equipment, _equipmentFlags, token)
+                    );
+
+                result.Equipments = await Task.WhenAll(equipments);
             }
 
             return result;

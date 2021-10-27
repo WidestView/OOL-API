@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 using OOL_API.Models.DataTransfer;
 
@@ -10,9 +13,6 @@ namespace OOL_API.Controllers
     [ApiController]
     public class EquipmentController : ControllerBase
     {
-        private const OutputEquipmentDetails.Flags DetailsReferenceFlags =
-            OutputEquipmentDetails.Flags.All ^ OutputEquipmentDetails.Flags.Equipments;
-
         private readonly StudioContext _context;
 
         private readonly OutputEquipmentHandler _equipmentHandler;
@@ -31,23 +31,32 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<OutputEquipment> ListEquipments()
+        public async Task<IEnumerable<OutputEquipment>> ListEquipments(CancellationToken token = default)
         {
-            var result = _context.Equipments.Where(equipment => !equipment.IsArchived).ToList();
+            var result = await _context.Equipments
+                .Where(equipment => !equipment.IsArchived)
+                .ToListAsync(token);
 
             foreach (var row in result)
             {
-                _context.Entry(row).Reference(item => item.Details).Load();
-                _context.Entry(row.Details).Reference(item => item.Type).Load();
+                await _context.Entry(row)
+                    .Reference(item => item.Details)
+                    .LoadAsync(token);
+
+                await _context.Entry(row.Details)
+                    .Reference(item => item.Type)
+                    .LoadAsync(token);
             }
 
-            return result.Select(_equipmentHandler.OutputFor);
+            return await Task.WhenAll(
+                result.Select(async row => await _equipmentHandler.OutputFor(row, token))
+            );
         }
 
         [HttpPost]
-        public IActionResult AddEquipment(InputEquipment input)
+        public async Task<IActionResult> AddEquipment(InputEquipment input)
         {
-            var details = _context.EquipmentDetails.Find(input.DetailsId);
+            var details = await _context.EquipmentDetails.FindAsync(input.DetailsId);
 
             if (details == null)
             {
@@ -57,18 +66,18 @@ namespace OOL_API.Controllers
             var equipment = input.ToModel();
             equipment.Details = details;
 
-            _context.Equipments.Add(equipment);
+            await _context.Equipments.AddAsync(equipment);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return Ok(_equipmentHandler.OutputFor(equipment));
         }
 
         [HttpPut]
         [Route("{id}")]
-        public IActionResult UpdateEquipment(int id, [FromBody] InputEquipment input)
+        public async Task<IActionResult> UpdateEquipment(int id, [FromBody] InputEquipment input)
         {
-            var current = _context.Equipments.Find(id);
+            var current = await _context.Equipments.FindAsync(id);
 
             if (current == null)
             {
@@ -80,61 +89,66 @@ namespace OOL_API.Controllers
             current.Available = updated.Available;
             current.DetailsId = updated.DetailsId;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return Ok(_equipmentHandler.OutputFor(current));
+            return Ok(await _equipmentHandler.OutputFor(current));
         }
 
         [HttpGet]
         [Route("{id}")]
-        public IActionResult GetEquipmentById(int id)
+        public async Task<IActionResult> GetEquipmentById(int id, CancellationToken token)
         {
-            var equipment = _context.Equipments.Find(id);
+            var equipment = await _context.Equipments.FindAsync(id);
 
             if (equipment == null)
             {
                 return NotFound();
             }
 
-            _context.Entry(equipment).Reference(item => item.Details).Load();
+            await _context.Entry(equipment)
+                .Reference(item => item.Details)
+                .LoadAsync(token);
 
-            _context.Entry(equipment.Details).Reference(item => item.Type).Load();
+            await _context.Entry(equipment.Details)
+                .Reference(item => item.Type)
+                .LoadAsync(token);
 
-            return Ok(_equipmentHandler.OutputFor(equipment));
+            return Ok(await _equipmentHandler.OutputFor(equipment, token));
         }
 
         [HttpGet]
         [Route("types")]
-        public IEnumerable<OutputEquipmentType> ListEquipmentTypes()
+        public async Task<IEnumerable<OutputEquipmentType>> ListEquipmentTypes(CancellationToken token = default)
         {
-            return _context.EquipmentTypes
+            return await _context.EquipmentTypes
                 .Where(type => !type.IsArchived)
-                .Select(type => new OutputEquipmentType(type));
+                .Select(type => new OutputEquipmentType(type))
+                .ToListAsync(token);
         }
 
         [HttpPost]
         [Route("types")]
-        public IActionResult AddEquipmentType(InputEquipmentType input)
+        public async Task<IActionResult> AddEquipmentType(InputEquipmentType input)
         {
             var type = input.ToModel();
 
-            _context.EquipmentTypes.Add(type);
+            await _context.EquipmentTypes.AddAsync(type);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return Ok(new OutputEquipmentType(type));
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public IActionResult Archive(int id)
+        public async Task<IActionResult> Archive(int id)
         {
-            var entry = _context.Equipments.Find(id);
+            var entry = await _context.Equipments.FindAsync(id);
 
             if (entry != null)
             {
                 entry.IsArchived = true;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
 
             return Ok();

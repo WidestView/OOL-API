@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OOL_API.Models;
@@ -25,34 +27,46 @@ namespace OOL_API.Controllers
 
         [HttpGet]
         [Route("picture")]
-        public IActionResult GetPicture()
+        public async Task<IActionResult> GetPicture(CancellationToken token = default)
         {
-            var user = _currentUserInfo.GetCurrentUser();
+            var user = await _currentUserInfo.GetCurrentUser(token);
 
-            if (user == null) return Unauthorized();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
-            var content = _pictureStorage.GetPicture(user.Cpf);
+            var content = await _pictureStorage.GetPicture(user.Cpf, token);
 
-            if (content == null) return NotFound();
+            if (content == null)
+            {
+                return NotFound();
+            }
 
-            return File(content, "image/jpeg");
+            return File(content, contentType: "image/jpeg");
         }
 
         [HttpPost]
         [Route("upload-image")]
-        public IActionResult Upload([FromForm] IFormFile file)
+        public async Task<IActionResult> Upload([FromForm] IFormFile file)
         {
-            var user = _currentUserInfo.GetCurrentUser();
+            var user = await _currentUserInfo.GetCurrentUser();
 
-            if (user == null) return Unauthorized();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
-            if (file.ContentType != "image/jpeg") return BadRequest();
+            if (file.ContentType != "image/jpeg")
+            {
+                return BadRequest();
+            }
 
-            using var stream = file.OpenReadStream();
+            await using var stream = file.OpenReadStream();
 
-            _pictureStorage.PostPicture(stream, user);
+            await _pictureStorage.PostPicture(stream, user);
 
-            return CreatedAtAction("GetPicture", "");
+            return CreatedAtAction(actionName: "GetPicture", value: "");
         }
     }
 }

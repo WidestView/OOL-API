@@ -4,8 +4,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OOL_API.Data;
 using OOL_API.Models;
@@ -34,17 +36,23 @@ namespace OOL_API.Controllers
         [AllowAnonymous]
         [Route("login")]
         [HttpPost]
-        public IActionResult Login([FromBody] InputLogin login)
+        public async Task<IActionResult> Login([FromBody] InputLogin login)
         {
-            if (!ModelState.IsValid) return new BadRequestObjectResult(ModelState);
+            if (!ModelState.IsValid)
+            {
+                return new BadRequestObjectResult(ModelState);
+            }
 
-            var user = AuthenticateUser(login!);
+            var user = await AuthenticateUser(login!);
 
-            if (user == null) return Unauthorized();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
-            var accessLevel = FindUserAccessLevel(user);
+            var accessLevel = await FindUserAccessLevel(user);
 
-            var token = GenerateToken(user.Cpf!, accessLevel);
+            var token = GenerateToken(username: user.Cpf!, accessLevel);
 
             return Ok(new {token});
         }
@@ -53,18 +61,24 @@ namespace OOL_API.Controllers
         [Authorize]
         [HttpGet]
         [Route("greet")]
-        public IActionResult Greet()
+        public async Task<IActionResult> Greet()
         {
             var user = HttpContext.User;
 
             var username = user.Claims.FirstOrDefault(
                 claim => claim.Type == JwtRegisteredClaimNames.Sid);
 
-            if (username == null) return Unauthorized();
+            if (username == null)
+            {
+                return Unauthorized();
+            }
 
-            var userWithLogin = FindUserWithLogin(username.Value);
+            var userWithLogin = await FindUserWithLogin(username.Value);
 
-            if (userWithLogin == null) return Unauthorized();
+            if (userWithLogin == null)
+            {
+                return Unauthorized();
+            }
 
             return Ok($"Hello, {userWithLogin.Name}");
         }
@@ -72,36 +86,43 @@ namespace OOL_API.Controllers
         [Authorize(Roles = AccessLevelInfo.SudoString)]
         [HttpGet]
         [Route("sudo-greet")]
-        public IActionResult SudoGreet()
+        public Task<IActionResult> SudoGreet()
         {
             return Greet();
         }
 
-        private User? AuthenticateUser(InputLogin login)
+        private async Task<User?> AuthenticateUser(InputLogin login)
         {
-            var user = FindUserWithLogin(login.Login);
+            var user = await FindUserWithLogin(login.Login);
 
             var hash = _passwordHash.Of(login.Password);
 
             if (user != null)
+            {
                 if (user.Password != hash)
+                {
                     user = null;
+                }
+            }
 
             return user;
         }
 
-        private string? FindUserAccessLevel(User user)
+        private async Task<string?> FindUserAccessLevel(User user)
         {
-            var employee = _context.Employees.Find(user.Cpf);
+            var employee = await _context.Employees.FindAsync(user.Cpf);
 
             if (employee == null)
+            {
                 return null;
+            }
+
             return AccessLevelInfo.Strings[employee.AccessLevel];
         }
 
-        private User? FindUserWithLogin(string login)
+        private async Task<User?> FindUserWithLogin(string login)
         {
-            return _context.Users.FirstOrDefault(
+            return await _context.Users.FirstOrDefaultAsync(
                 user => user.Email == login || user.Cpf == login
             );
         }
@@ -134,7 +155,10 @@ namespace OOL_API.Controllers
                 new Claim(JwtRegisteredClaimNames.Sid, username)
             };
 
-            if (accessLevel != null) claims.Add(new Claim("roles", accessLevel));
+            if (accessLevel != null)
+            {
+                claims.Add(new Claim(type: "roles", accessLevel));
+            }
 
             return claims;
         }

@@ -94,7 +94,7 @@ namespace OOL_API.Models.DataTransfer
                         .LoadAsync(token);
                 }
 
-                result.Equipment = EquipmentHandler.Create(withdraw.Equipment, _equipmentFlags);
+                result.Equipment = await EquipmentHandler.Create(withdraw.Equipment, _equipmentFlags, token);
             }
 
 

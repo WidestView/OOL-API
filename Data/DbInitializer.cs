@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using OOL_API.Models;
 using OOL_API.Services;
 
@@ -17,14 +19,14 @@ namespace OOL_API.Data
             _settings = settings;
         }
 
-        public void Initialize(StudioContext context)
+        public async Task Initialize(StudioContext context)
         {
             if (_settings.ResetDatabaseOnBoot)
             {
-                context.Database.EnsureDeleted();
+                await context.Database.EnsureDeletedAsync();
             }
 
-            context.Database.EnsureCreated();
+            await context.Database.EnsureCreatedAsync();
 
             var alreadyInitialized = context.Packages.Any();
 
@@ -33,30 +35,30 @@ namespace OOL_API.Data
                 return;
             }
 
-            CreatePackages(context);
+            await CreatePackages(context);
 
-            var users = CreateUsers(context);
+            await CreateUsers(context);
 
-            CreateEmployees(context, users);
+            await CreateEmployees(context);
 
-            CreateCustomers(context);
+            await CreateCustomers(context);
 
-            CreateOrders(context);
+            await CreateOrders(context);
 
-            CreatePhotoshoots(context);
+            await CreatePhotoshoots(context);
 
-            CreateEquipments(context);
+            await CreateEquipments(context);
 
-            CreateWithdraw(context);
+            await CreateWithdraw(context);
         }
 
-        private void CreateWithdraw(StudioContext context)
+        private async Task CreateWithdraw(StudioContext context)
         {
-            var employee = context.Employees.OrderBy(row => row.UserId).First();
+            var employee = await context.Employees.OrderBy(row => row.UserId).FirstAsync();
 
-            var equipment = context.Equipments.OrderBy(row => row.Id).First();
+            var equipment = await context.Equipments.OrderBy(row => row.Id).FirstAsync();
 
-            var photoshoot = context.PhotoShoots.OrderBy(row => row.Id).First();
+            var photoshoot = await context.PhotoShoots.OrderBy(row => row.Id).FirstAsync();
 
             var withdraw = new EquipmentWithdraw
             {
@@ -71,12 +73,12 @@ namespace OOL_API.Data
                 PhotoShoot = photoshoot
             };
 
-            context.EquipmentWithDraws.Add(withdraw);
+            await context.EquipmentWithDraws.AddAsync(withdraw);
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        private void CreatePackages(StudioContext context)
+        private async Task CreatePackages(StudioContext context)
         {
             var packages = new[]
             {
@@ -108,13 +110,13 @@ namespace OOL_API.Data
 
             foreach (var p in packages)
             {
-                context.Packages.Add(p);
+                await context.Packages.AddAsync(p);
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        private User[] CreateUsers(StudioContext context)
+        private async Task CreateUsers(StudioContext context)
         {
             var users = new[]
             {
@@ -144,14 +146,13 @@ namespace OOL_API.Data
 
             foreach (var user in users)
             {
-                context.Users.Add(user);
+                await context.Users.AddAsync(user);
             }
 
-            context.SaveChanges();
-            return users;
+            await context.SaveChangesAsync();
         }
 
-        private void CreateEmployees(StudioContext context, IEnumerable<User> users)
+        private async Task CreateEmployees(StudioContext context)
         {
             var occupation = new Occupation
             {
@@ -159,8 +160,8 @@ namespace OOL_API.Data
                 Name = "Idk"
             };
 
-            context.Occupations.Add(occupation);
-            context.SaveChanges();
+            await context.Occupations.AddAsync(occupation);
+            await context.SaveChangesAsync();
 
             var employees = new[]
             {
@@ -180,23 +181,24 @@ namespace OOL_API.Data
                 }
             };
 
-            foreach (var (employee, user) in employees.Zip(users))
+            foreach (var (employee, user) in employees.Zip(await context.Users.ToListAsync()))
             {
                 employee.UserId = user.Cpf;
 
-                context.Employees.Add(employee);
+                await context.Employees.AddAsync(employee);
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        private void CreateCustomers(StudioContext context)
+        private async Task CreateCustomers(StudioContext context)
         {
-            var user = context.Users.OrderBy(row => row.Cpf).First();
+            var user = await context.Users.OrderBy(row => row.Cpf).FirstAsync();
 
             var cart = new Cart();
-            context.Carts.Add(cart); //DEFAULT VALUES EXCEPTION, MUST FIX
-            context.SaveChanges();
+
+            await context.Carts.AddAsync(cart);
+            await context.SaveChangesAsync();
 
             var customers = new[]
             {
@@ -209,16 +211,16 @@ namespace OOL_API.Data
 
             foreach (var customer in customers)
             {
-                context.Customers.Add(customer);
+                await context.Customers.AddAsync(customer);
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        private void CreateOrders(StudioContext context)
+        private async Task CreateOrders(StudioContext context)
         {
-            var customer = context.Customers.OrderBy(row => row.UserId).First();
-            var package = context.Packages.OrderBy(row => row.Id).First();
+            var customer = await context.Customers.OrderBy(row => row.UserId).FirstAsync();
+            var package = await context.Packages.OrderBy(row => row.Id).FirstAsync();
 
             var order = new Order
             {
@@ -226,15 +228,15 @@ namespace OOL_API.Data
                 PackageId = package.Id
             };
 
-            context.Orders.Add(order);
-            context.SaveChanges();
+            await context.Orders.AddAsync(order);
+            await context.SaveChangesAsync();
         }
 
-        private void CreatePhotoshoots(StudioContext context)
+        private async Task CreatePhotoshoots(StudioContext context)
         {
-            var order = context.Orders.OrderBy(row => row.Id).First();
+            var order = await context.Orders.OrderBy(row => row.Id).FirstAsync();
 
-            var employee = context.Employees.OrderBy(row => row.UserId).First();
+            var employee = await context.Employees.OrderBy(row => row.UserId).FirstAsync();
 
             var shoots = new[]
             {
@@ -277,13 +279,13 @@ namespace OOL_API.Data
 
             foreach (var photoShoot in shoots)
             {
-                context.PhotoShoots.Add(photoShoot);
+                await context.PhotoShoots.AddAsync(photoShoot);
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        private void CreateEquipments(StudioContext context)
+        private async Task CreateEquipments(StudioContext context)
         {
             var types = new[]
             {
@@ -302,13 +304,12 @@ namespace OOL_API.Data
 
             foreach (var t in types)
             {
-                context.EquipmentTypes.Add(t);
+                await context.EquipmentTypes.AddAsync(t);
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var type = types.OrderBy(row => row.Id).First();
-
 
             var details = new EquipmentDetails
             {
@@ -317,9 +318,9 @@ namespace OOL_API.Data
                 TypeId = type.Id
             };
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
-            context.EquipmentDetails.Add(details);
+            await context.EquipmentDetails.AddAsync(details);
 
             var equipments = new[]
             {
@@ -333,10 +334,10 @@ namespace OOL_API.Data
 
             foreach (var equipment in equipments)
             {
-                context.Equipments.Add(equipment);
+                await context.Equipments.AddAsync(equipment);
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 }

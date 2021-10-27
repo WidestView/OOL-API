@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
@@ -10,7 +11,7 @@ namespace OOL_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PhotoShootController : Controller
+    public class PhotoShootController : ControllerBase
     {
         private readonly StudioContext _context;
 
@@ -23,57 +24,69 @@ namespace OOL_API.Controllers
 
 
         [HttpGet]
-        public IActionResult ListAll()
+        public async Task<IActionResult> ListAll()
         {
-            return Json(
-                _context.PhotoShoots.Select(shoot => new OutputPhotoShoot(shoot, false))
+            return Ok(
+                await _context.PhotoShoots
+                    .Select(shoot => new OutputPhotoShoot(shoot, false))
+                    .ToListAsync()
             );
         }
 
         [HttpGet]
         [Route("current")]
-        public IActionResult ListCurrentPhotoshoots()
+        public async Task<IActionResult> ListCurrentPhotoshoots()
         {
-            var employee = _currentUser.GetCurrentEmployee();
+            var employee = await _currentUser.GetCurrentEmployee();
 
-            if (employee == null) return Unauthorized();
+            if (employee == null)
+            {
+                return Unauthorized();
+            }
 
-            var shoots = _context.PhotoShoots.Where(
-                shoot => shoot.Employees.Any(e => e.UserId == employee.UserId));
+            var shoots = await _context.PhotoShoots.Where(
+                    shoot => shoot.Employees.Any(e => e.UserId == employee.UserId))
+                .ToListAsync();
 
-            return Ok(shoots.Select(s => new OutputPhotoShoot(s, false)));
+            return Ok(shoots.Select(s => new OutputPhotoShoot(s, withReferences: false)));
         }
 
 
         [HttpGet("{id}")]
-        public IActionResult GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var result = _context
+            var result = await _context
                 .PhotoShoots
                 .Include(shot => shot.Images)
-                .FirstOrDefault(shoot => shoot.ResourceId == id);
+                .FirstOrDefaultAsync(shoot => shoot.ResourceId == id);
 
-            if (result == null) return NotFound();
+            if (result == null)
+            {
+                return NotFound();
+            }
 
-            return Json(new OutputPhotoShoot(result, true));
+            return Ok(new OutputPhotoShoot(result, withReferences: true));
         }
 
         [HttpPost("add")]
-        public IActionResult Add([FromBody] InputPhotoShoot input)
+        public async Task<IActionResult> Add([FromBody] InputPhotoShoot input)
         {
             if (ModelState.IsValid)
             {
                 var shot = input.ToPhotoShoot();
 
-                if (_context.Orders.Find(shot.OrderId) == null) return NotFound();
+                if (await _context.Orders.FindAsync(shot.OrderId) == null)
+                {
+                    return NotFound();
+                }
 
-                _context.PhotoShoots.Add(shot);
+                await _context.PhotoShoots.AddAsync(shot);
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
-                var output = new OutputPhotoShoot(shot, true);
+                var output = new OutputPhotoShoot(shot, withReferences: true);
 
-                return CreatedAtAction("GetById", new {id = shot.ResourceId}, output);
+                return CreatedAtAction(actionName: "GetById", routeValues: new {id = shot.ResourceId}, output);
             }
 
             return new BadRequestObjectResult(ModelState);

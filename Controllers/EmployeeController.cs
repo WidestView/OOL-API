@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OOL_API.Models.DataTransfer;
 using OOL_API.Services;
@@ -19,11 +20,14 @@ namespace OOL_API.Controllers
 
         [HttpGet]
         [Route("info")]
-        public IActionResult GetInfo()
+        public async Task<IActionResult> GetInfo()
         {
-            var employee = _currentUserInfo.GetCurrentEmployee();
+            var employee = await _currentUserInfo.GetCurrentEmployee();
 
-            if (employee == null) return Unauthorized();
+            if (employee == null)
+            {
+                return Unauthorized();
+            }
 
             return Ok(new OutputEmployee(employee));
         }

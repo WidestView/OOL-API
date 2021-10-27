@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OOL_API.Services
 {
@@ -17,8 +19,8 @@ namespace OOL_API.Services
             identifierToString ??= key => key.ToString();
 
             return provider => new FunctionPictureStorage<TModel, TKey>(
-                (IPictureStorageDelegate) provider.GetService(typeof(IPictureStorageDelegate)),
-                new FunctionPictureStorage<TModel, TKey>.Config
+                storage: (IPictureStorageDelegate) provider.GetService(typeof(IPictureStorageDelegate)),
+                config: new FunctionPictureStorage<TModel, TKey>.Config
                 {
                     Directory = directory,
                     IdentifierOf = identifierOf,
@@ -27,20 +29,12 @@ namespace OOL_API.Services
             );
         }
     }
+
     public class FunctionPictureStorage<TModel, TKey> : IPictureStorage<TModel, TKey>
     {
-        public class Config
-        {
-            public string Directory { get; set; }
-
-            public Func<TModel, TKey> IdentifierOf { get; set; }
-
-            public Func<TKey, string> IdentifierToString { get; set; }
-        }
+        private readonly Config _config;
 
         private readonly IPictureStorageDelegate _delegate;
-
-        private readonly Config _config;
 
         public FunctionPictureStorage(
             IPictureStorageDelegate storage,
@@ -52,13 +46,25 @@ namespace OOL_API.Services
             _config = config;
         }
 
-        public byte[] GetPicture(TKey id)
-            => _delegate.GetPicture(_config.IdentifierToString(id));
+        public Task<byte[]> GetPicture(TKey id, CancellationToken token = default)
+        {
+            return _delegate.GetPicture(id: _config.IdentifierToString(id), token);
+        }
 
-        public void PostPicture(Stream stream, TModel image)
-            => _delegate.PostPicture(
-                stream, _config.IdentifierToString(_config.IdentifierOf(image))
+        public Task PostPicture(Stream stream, TModel image)
+        {
+            return _delegate.PostPicture(
+                stream, model: _config.IdentifierToString(_config.IdentifierOf(image))
             );
-    }
+        }
 
+        public class Config
+        {
+            public string Directory { get; set; }
+
+            public Func<TModel, TKey> IdentifierOf { get; set; }
+
+            public Func<TKey, string> IdentifierToString { get; set; }
+        }
+    }
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,59 +35,60 @@ namespace OOL_API.Controllers
 #if DEBUG
 
         [HttpGet]
-        public IActionResult ListImages()
+        public async Task<IActionResult> ListImages(CancellationToken token = default)
         {
-            return Json(_context.PhotoShootImages.Select(img => img.Id).Select(id =>
-                new
-                {
-                    id,
-                    url = $"{ApiUrl}{Url.Action("GetImageContent", new {id})}"
-                }
-            ));
+            return Ok((await _context.PhotoShootImages.Select(img => img.Id).ToListAsync(token))
+                .Select(id =>
+                    new
+                    {
+                        id,
+                        url = $"{ApiUrl}{Url.Action(action: "GetImageContent", values: new {id})}"
+                    }
+                ));
         }
 
 #endif
 
         [HttpGet("{id}")]
-        public IActionResult GetImageContent(Guid id)
+        public async Task<IActionResult> GetImageContent(Guid id, CancellationToken token = default)
         {
-            var content = _pictureStorage.GetPicture(id);
+            var content = await _pictureStorage.GetPicture(id, token);
 
             if (content != null)
             {
-                return File(fileContents: content, contentType: "image/jpeg");
+                return File(content, contentType: "image/jpeg");
             }
 
             return NotFound();
         }
 
         [HttpGet("data/{id}")]
-        public IActionResult GetImageData(Guid id)
+        public async Task<IActionResult> GetImageData(Guid id)
         {
-            var image = _context.PhotoShootImages
+            var image = await _context.PhotoShootImages
                 .Include(img => img.PhotoShoot)
-                .FirstOrDefault(img => img.Id == id);
+                .FirstOrDefaultAsync(img => img.Id == id);
 
             if (image == null)
             {
                 return NotFound();
             }
 
-            return Json(
-                new OutputPhotoShootImage(image: image, withReferences: true)
+            return Ok(
+                new OutputPhotoShootImage(image, withReferences: true)
             );
         }
 
 
         [HttpPost("upload/{photoShootResourceId}")]
-        public IActionResult UploadImage(Guid photoShootResourceId, [FromForm] IFormFile file)
+        public async Task<IActionResult> UploadImage(Guid photoShootResourceId, [FromForm] IFormFile file)
         {
             if (IPictureStorageInfo.IsSupported(file.ContentType))
             {
                 return StatusCode(400);
             }
 
-            var photoShoot = FindPhotoShoot(photoShootResourceId);
+            var photoShoot = await FindPhotoShoot(photoShootResourceId);
 
             if (photoShoot == null)
             {
@@ -94,14 +97,14 @@ namespace OOL_API.Controllers
 
             var image = NewImageFromPhotoShoot(photoShoot);
 
-            RegisterPhotoShootImage(image);
+            await RegisterPhotoShootImage(image);
 
-            SavePhotoShootImage(file: file, image: image);
+            await SavePhotoShootImage(file, image);
 
             return CreatedAtAction(
                 actionName: "GetImageData",
                 routeValues: new {id = image.Id},
-                value: new OutputPhotoShootImage(image: image, withReferences: true)
+                value: new OutputPhotoShootImage(image, withReferences: true)
             );
         }
 
@@ -115,25 +118,25 @@ namespace OOL_API.Controllers
             return image;
         }
 
-        private void SavePhotoShootImage(IFormFile file, PhotoShootImage image)
+        private async Task SavePhotoShootImage(IFormFile file, PhotoShootImage image)
         {
-            using var stream = file.OpenReadStream();
+            await using var stream = file.OpenReadStream();
 
-            _pictureStorage.PostPicture(stream: stream, model: image);
+            await _pictureStorage.PostPicture(stream, image);
         }
 
-        private void RegisterPhotoShootImage(PhotoShootImage image)
+        private async Task RegisterPhotoShootImage(PhotoShootImage image)
         {
-            _context.PhotoShootImages.Add(image);
+            await _context.PhotoShootImages.AddAsync(image);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             Debug.Assert(image.Id != Guid.Empty);
         }
 
-        private PhotoShoot FindPhotoShoot(Guid photoShootResourceId)
+        private async Task<PhotoShoot> FindPhotoShoot(Guid photoShootResourceId)
         {
-            return _context.PhotoShoots.FirstOrDefault(shoot => shoot.ResourceId == photoShootResourceId);
+            return await _context.PhotoShoots.FirstOrDefaultAsync(shoot => shoot.ResourceId == photoShootResourceId);
         }
     }
 }

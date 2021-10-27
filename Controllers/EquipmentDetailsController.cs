@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
@@ -35,45 +38,49 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<OutputEquipmentDetails> ListDetails()
+        public async Task<IEnumerable<OutputEquipmentDetails>> ListDetails(CancellationToken token = default)
         {
-            var result = _context.EquipmentDetails
-                .Where(details => !details.IsArchived).ToList();
+            var result = await _context.EquipmentDetails
+                .Where(details => !details.IsArchived).ToListAsync(token);
 
-            return result.Select(_detailsHandler.OutputFor);
+            var output = result.Select(
+                async row => await _detailsHandler.OutputFor(row, token)
+            );
+
+            return await Task.WhenAll(output);
         }
 
         [HttpGet]
         [Route("{id}")]
-        public IActionResult GetDetails(int id)
+        public async Task<IActionResult> GetDetails(int id, CancellationToken token = default)
         {
-            var result = _context.EquipmentDetails.Find(id);
+            var result = await _context.EquipmentDetails.FindAsync(id, token);
 
             if (result == null)
             {
                 return NotFound();
             }
 
-            _context.Entry(result).Collection(
+            await _context.Entry(result).Collection(
                 details => details.Equipments
-            ).Load();
+            ).LoadAsync(token);
 
-            _context.Entry(result).Reference(
+            await _context.Entry(result).Reference(
                 details => details.Type
-            ).Load();
+            ).LoadAsync(token);
 
-            return Ok(_detailsHandler.OutputFor(result));
+            return Ok(await _detailsHandler.OutputFor(result, token));
         }
 
         [HttpPost]
-        public IActionResult AddEquipmentDetails([FromBody] InputEquipmentDetails input)
+        public async Task<IActionResult> AddEquipmentDetails([FromBody] InputEquipmentDetails input)
         {
             if (!ModelState.IsValid)
             {
                 return new BadRequestObjectResult(input);
             }
 
-            var type = _context.EquipmentTypes.Find(input.TypeId);
+            var type = await _context.EquipmentTypes.FindAsync(input.TypeId);
 
             if (type == null)
             {
@@ -82,9 +89,9 @@ namespace OOL_API.Controllers
 
             var details = input.ToModel();
 
-            _context.EquipmentDetails.Add(details);
+            await _context.EquipmentDetails.AddAsync(details);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return CreatedAtAction(
                 actionName: nameof(GetDetails),
@@ -95,14 +102,14 @@ namespace OOL_API.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public IActionResult UpdateDetails(int id, [FromBody] InputEquipmentDetails input)
+        public async Task<IActionResult> UpdateDetails(int id, [FromBody] InputEquipmentDetails input)
         {
             if (!ModelState.IsValid)
             {
                 return new BadRequestObjectResult(input);
             }
 
-            var current = _context.EquipmentDetails.Find(id);
+            var current = await _context.EquipmentDetails.FindAsync(id);
 
             if (current == null)
             {
@@ -115,58 +122,58 @@ namespace OOL_API.Controllers
             current.Price = updated.Price;
             current.TypeId = updated.TypeId;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return Ok(_detailsHandler.OutputFor(current));
+            return Ok(await _detailsHandler.OutputFor(current));
         }
 
         [HttpPost]
         [Route("image/{id}")]
-        public IActionResult PostImage(int id, [FromForm] IFormFile file)
+        public async Task<IActionResult> PostImage(int id, [FromForm] IFormFile file, CancellationToken token = default)
         {
             if (!IPictureStorageInfo.IsSupported(file?.ContentType))
             {
                 return StatusCode(400);
             }
 
-            var entry = _context.EquipmentDetails.Find(id);
+            var entry = await _context.EquipmentDetails.FindAsync(id);
 
             if (entry == null)
             {
                 return NotFound();
             }
 
-            using var stream = file!.OpenReadStream();
+            await using var stream = file!.OpenReadStream();
 
-            _pictureStorage.PostPicture(stream: stream, model: entry);
+            await _pictureStorage.PostPicture(stream, entry);
 
             return Ok();
         }
 
         [HttpGet]
         [Route("image/{id}")]
-        public IActionResult GetImage(int id)
+        public async Task<IActionResult> GetImage(int id)
         {
-            var content = _pictureStorage.GetPicture(id);
+            var content = await _pictureStorage.GetPicture(id);
 
             if (content == null)
             {
                 return NotFound();
             }
 
-            return File(fileContents: content, contentType: "image/jpeg");
+            return File(content, contentType: "image/jpeg");
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public IActionResult Archive(int id)
+        public async Task<IActionResult> Archive(int id)
         {
-            var entry = _context.EquipmentDetails.Find(id);
+            var entry = await _context.EquipmentDetails.FindAsync(id);
 
             if (entry != null)
             {
                 entry.IsArchived = true;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
 
             return Ok();

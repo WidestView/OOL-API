@@ -1,4 +1,6 @@
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -20,27 +22,33 @@ namespace OOL_API.Services
             _context = context;
         }
 
-        public User? GetCurrentUser()
+        public async Task<User?> GetCurrentUser(CancellationToken token = default)
         {
             var httpUser = _httpContext.HttpContext.User;
 
             var username = httpUser.Claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sid);
 
-            if (username == null) return null;
+            if (username == null)
+            {
+                return null;
+            }
 
-            return _context.Users.Find(username.Value);
+            return await _context.Users.FindAsync(username.Value, token);
         }
 
-        public Employee? GetCurrentEmployee()
+        public async Task<Employee?> GetCurrentEmployee()
         {
-            var user = GetCurrentUser();
+            var user = await GetCurrentUser();
 
-            if (user == null) return null;
+            if (user == null)
+            {
+                return null;
+            }
 
-            var employee = _context.Employees
+            var employee = await _context.Employees
                 .Include(e => e.User)
                 .Include(e => e.Occupation)
-                .FirstOrDefault(e => e.UserId == user.Cpf);
+                .FirstOrDefaultAsync(e => e.UserId == user.Cpf);
 
             return employee;
         }

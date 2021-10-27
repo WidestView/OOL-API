@@ -1,12 +1,14 @@
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OOL_API.Services
 {
     public interface IPictureStorage<in TModel, in TKey>
     {
-        public byte[] GetPicture(TKey id);
+        public Task<byte[]> GetPicture(TKey id, CancellationToken token = default);
 
-        public void PostPicture(Stream stream, TModel model);
+        public Task PostPicture(Stream stream, TModel model);
     }
 
     public interface IPictureStorageInfo

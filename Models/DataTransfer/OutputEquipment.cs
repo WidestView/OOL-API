@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using OOL_API.Data;
 using static OOL_API.Models.DataTransfer.OutputEquipment;
 
@@ -40,12 +42,12 @@ namespace OOL_API.Models.DataTransfer
 
         public OutputEquipmentDetailsHandler DetailsHandler { get; set; }
 
-        public OutputEquipment OutputFor(Equipment equipment)
+        public async Task<OutputEquipment> OutputFor(Equipment equipment, CancellationToken token = default)
         {
-            return Create(equipment: equipment, flags: _outputFlags);
+            return await Create(equipment, _outputFlags, token);
         }
 
-        public OutputEquipment Create(Equipment equipment, Flags flags)
+        public async Task<OutputEquipment> Create(Equipment equipment, Flags flags, CancellationToken token = default)
         {
             var result = new OutputEquipment
             {
@@ -61,12 +63,12 @@ namespace OOL_API.Models.DataTransfer
 
                 if (equipment.Details == null)
                 {
-                    _context.Entry(equipment)
+                    await _context.Entry(equipment)
                         .Reference(row => row.Details)
-                        .Load();
+                        .LoadAsync(token);
                 }
 
-                result.Details = DetailsHandler.Create(details: equipment.Details, flags: _detailsFlags);
+                result.Details = await DetailsHandler.Create(equipment.Details, _detailsFlags, token);
             }
 
             return result;

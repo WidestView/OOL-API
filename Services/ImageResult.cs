@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace OOL_API.Services
 {
 #nullable enable
+
+    // todo: User ImageResult on PictureStorage
+
     public struct ImageResult
     {
         public byte[] Content { get; }
