@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OOL_API.Models;
 
 namespace OOL_API.Data
@@ -32,24 +31,13 @@ namespace OOL_API.Data
 
         public DbSet<Order> Orders { get; set; }
 
-        public DbSet<EquipmentBorrowing> EquipmentBorrowings { get; set; }
+        public DbSet<EquipmentWithdraw> EquipmentWithDraws { get; set; }
 
         public DbSet<Equipment> Equipments { get; set; }
 
         public DbSet<EquipmentDetails> EquipmentDetails { get; set; }
 
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
-
-        public int CountEquipmentWithDetails(EquipmentDetails details)
-        {
-            if (details == null)
-            {
-                return 0;
-            }
-
-            return Equipments.Count(e => e.DetailsId == details.Id);
-        }
-
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -84,7 +72,7 @@ namespace OOL_API.Data
 
             builder.Entity<Order>().ToTable("Order");
 
-            builder.Entity<EquipmentBorrowing>().ToTable("EquipmentBorrowing");
+            builder.Entity<EquipmentWithdraw>().ToTable("EquipmentBorrowing");
 
             builder.Entity<Equipment>().ToTable("Equipment");
 

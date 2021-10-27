@@ -4,24 +4,29 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OOL_API.Models
 {
-    public class EquipmentBorrowing
+    public class EquipmentWithdraw
     {
         [Key]
         public int Id { get; set; }
 
-        public DateTime Takeout { get; set; }
+        public DateTime WithdrawDate { get; set; }
 
-        public DateTime PredictedDevolution { get; set; }
-
-        public DateTime DefinitiveDevolution { get; set; }
+        public DateTime ExpectedDevolutionDate { get; set; }
+        public DateTime? EffectiveDevolutionDate { get; set; }
 
         public int PhotoShootId { get; set; }
+
+        [Required]
         public PhotoShoot PhotoShoot { get; set; }
 
-        public string UserCpf { get; set; }
-        public User User { get; set; }
+        public string EmployeeCpf { get; set; }
+
+        [Required]
+        public Employee Employee { get; set; }
 
         public int EquipmentId { get; set; }
+
+        [Required]
         public Equipment Equipment { get; set; }
     }
 

@@ -37,7 +37,7 @@ namespace OOL_API.Data
 
             var users = CreateUsers(context);
 
-            CreateEmployees(context: context, users: users);
+            CreateEmployees(context, users);
 
             CreateCustomers(context);
 
@@ -46,6 +46,34 @@ namespace OOL_API.Data
             CreatePhotoshoots(context);
 
             CreateEquipments(context);
+
+            CreateWithdraw(context);
+        }
+
+        private void CreateWithdraw(StudioContext context)
+        {
+            var employee = context.Employees.OrderBy(row => row.UserId).First();
+
+            var equipment = context.Equipments.OrderBy(row => row.Id).First();
+
+            var photoshoot = context.PhotoShoots.OrderBy(row => row.Id).First();
+
+            var withdraw = new EquipmentWithdraw
+            {
+                WithdrawDate = DateTime.UtcNow,
+                ExpectedDevolutionDate = DateTime.UtcNow + TimeSpan.FromHours(5),
+                EffectiveDevolutionDate = DateTime.UtcNow + TimeSpan.FromHours(3),
+                Employee = employee,
+                EmployeeCpf = employee.UserId,
+                Equipment = equipment,
+                EquipmentId = equipment.Id,
+                PhotoShootId = photoshoot.Id,
+                PhotoShoot = photoshoot
+            };
+
+            context.EquipmentWithDraws.Add(withdraw);
+
+            context.SaveChanges();
         }
 
         private void CreatePackages(StudioContext context)
@@ -164,7 +192,7 @@ namespace OOL_API.Data
 
         private void CreateCustomers(StudioContext context)
         {
-            var user = context.Users.First();
+            var user = context.Users.OrderBy(row => row.Cpf).First();
 
             var cart = new Cart();
             context.Carts.Add(cart); //DEFAULT VALUES EXCEPTION, MUST FIX
@@ -189,8 +217,8 @@ namespace OOL_API.Data
 
         private void CreateOrders(StudioContext context)
         {
-            var customer = context.Customers.First();
-            var package = context.Packages.First();
+            var customer = context.Customers.OrderBy(row => row.UserId).First();
+            var package = context.Packages.OrderBy(row => row.Id).First();
 
             var order = new Order
             {
@@ -204,9 +232,9 @@ namespace OOL_API.Data
 
         private void CreatePhotoshoots(StudioContext context)
         {
-            var order = context.Orders.First();
+            var order = context.Orders.OrderBy(row => row.Id).First();
 
-            var employee = context.Employees.First();
+            var employee = context.Employees.OrderBy(row => row.UserId).First();
 
             var shoots = new[]
             {
@@ -279,7 +307,7 @@ namespace OOL_API.Data
 
             context.SaveChanges();
 
-            var type = types.First();
+            var type = types.OrderBy(row => row.Id).First();
 
 
             var details = new EquipmentDetails
