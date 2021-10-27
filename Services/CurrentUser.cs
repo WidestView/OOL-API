@@ -33,7 +33,7 @@ namespace OOL_API.Services
                 return null;
             }
 
-            return await _context.Users.FindAsync(username.Value, token);
+            return await _context.Users.FindAsync(username.Value);
         }
 
         public async Task<Employee?> GetCurrentEmployee()

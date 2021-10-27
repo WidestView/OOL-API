@@ -54,7 +54,7 @@ namespace OOL_API.Controllers
         [Route("{id}")]
         public async Task<IActionResult> GetDetails(int id, CancellationToken token = default)
         {
-            var result = await _context.EquipmentDetails.FindAsync(id, token);
+            var result = await _context.EquipmentDetails.FindAsync(id);
 
             if (result == null)
             {
