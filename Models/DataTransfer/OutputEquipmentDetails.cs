@@ -52,6 +52,9 @@ namespace OOL_API.Models.DataTransfer
 
             if ((flags & Flags.Equipments) != 0)
             {
+                EquipmentHandler = EquipmentHandler
+                                   ?? throw new ArgumentNullException(nameof(EquipmentHandler));
+
                 if (details.Equipments == null)
                 {
                     _context
