@@ -47,11 +47,6 @@ namespace OOL_API.Controllers
         [HttpPost]
         public IActionResult AddEquipment(InputEquipment input)
         {
-            if (!ModelState.IsValid)
-            {
-                return new BadRequestObjectResult(input);
-            }
-
             var details = _context.EquipmentDetails.Find(input.DetailsId);
 
             if (details == null)
@@ -73,11 +68,6 @@ namespace OOL_API.Controllers
         [Route("{id}")]
         public IActionResult UpdateEquipment(int id, [FromBody] InputEquipment input)
         {
-            if (!ModelState.IsValid)
-            {
-                return new BadRequestObjectResult(input);
-            }
-
             var current = _context.Equipments.Find(id);
 
             if (current == null)
@@ -126,11 +116,6 @@ namespace OOL_API.Controllers
         [Route("types")]
         public IActionResult AddEquipmentType(InputEquipmentType input)
         {
-            if (!ModelState.IsValid)
-            {
-                return new BadRequestObjectResult(input);
-            }
-
             var type = input.ToModel();
 
             _context.EquipmentTypes.Add(type);
@@ -138,6 +123,21 @@ namespace OOL_API.Controllers
             _context.SaveChanges();
 
             return Ok(new OutputEquipmentType(type));
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public IActionResult Archive(int id)
+        {
+            var entry = _context.Equipments.Find(id);
+
+            if (entry != null)
+            {
+                entry.IsArchived = true;
+                _context.SaveChanges();
+            }
+
+            return Ok();
         }
     }
 }

@@ -157,18 +157,17 @@ namespace OOL_API.Controllers
             return File(fileContents: content, contentType: "image/jpeg");
         }
 
-        [HttpGet]
-        [Route("archive/{id}")]
+        [HttpDelete]
+        [Route("{id}")]
         public IActionResult Archive(int id)
         {
             var entry = _context.EquipmentDetails.Find(id);
 
-            if (entry == null)
+            if (entry != null)
             {
-                return NotFound();
+                entry.IsArchived = true;
+                _context.SaveChanges();
             }
-
-            entry.IsArchived = true;
 
             return Ok();
         }
