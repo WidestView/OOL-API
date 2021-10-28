@@ -42,6 +42,14 @@ namespace OOL_API.Models.DataTransfer
 
         public OutputEquipmentDetailsHandler DetailsHandler { get; set; }
 
+        public OutputEquipmentHandler Bind(OutputEquipmentDetailsHandler handler)
+        {
+            DetailsHandler = handler;
+            handler.EquipmentHandler = this;
+
+            return this;
+        }
+
         public async Task<OutputEquipment> OutputFor(Equipment equipment, CancellationToken token = default)
         {
             return await Create(equipment, _outputFlags, token);

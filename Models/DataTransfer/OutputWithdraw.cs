@@ -36,7 +36,7 @@ namespace OOL_API.Models.DataTransfer
     {
         private readonly StudioContext _context;
 
-        private readonly OutputEquipment.Flags _equipmentFlags = OutputEquipment.Flags.None;
+        private readonly OutputEquipment.Flags _equipmentFlags = OutputEquipment.Flags.Details;
         private readonly Flags _outputFlags = Flags.All;
 
         public OutputWithdrawHandler(StudioContext context)
@@ -45,6 +45,12 @@ namespace OOL_API.Models.DataTransfer
         }
 
         public OutputEquipmentHandler EquipmentHandler { get; set; }
+
+        public OutputEquipmentHandler Bind(OutputEquipmentHandler handler)
+        {
+            EquipmentHandler = handler;
+            return handler;
+        }
 
         public Task<OutputWithdraw> OutputFor(EquipmentWithdraw withdraw, CancellationToken token)
         {

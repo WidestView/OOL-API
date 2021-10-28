@@ -20,24 +20,22 @@ namespace OOL_API.Controllers
         {
             _context = context;
 
-            var equipmentHandler = new OutputEquipmentHandler(context);
+            _withdrawHandler = new OutputWithdrawHandler(context);
 
-            var withdrawHandler = new OutputWithdrawHandler(context)
-            {
-                EquipmentHandler = equipmentHandler
-            };
-
-            _withdrawHandler = withdrawHandler;
+            _withdrawHandler
+                .Bind(new OutputEquipmentHandler(context))
+                .Bind(new OutputEquipmentDetailsHandler(context));
         }
 
         [HttpGet]
         public async Task<IActionResult> ListWithdraws(CancellationToken token)
         {
             var content = await _context.EquipmentWithDraws
-                .Include(row => row.Employee)
-                .Include(row => row.Equipment)
                 .Include(row => row.PhotoShoot)
+                .Include(row => row.Employee)
                 .Include(row => row.Employee.User)
+                .Include(row => row.Equipment)
+                .Include(row => row.Equipment.Details)
                 .ToListAsync(token);
 
             var result = content
