@@ -31,6 +31,23 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
+        [Route("{id}")]
+        [SwaggerOperation("Returns the equipment withdraw with the given id")]
+        [SwaggerResponse(200, "The withdraw that was found", typeof(OutputWithdraw))]
+        [SwaggerResponse(404, "There withdraw with the given id was not found")]
+        public async Task<IActionResult> GetById(int id, CancellationToken token)
+        {
+            var result = await _context.EquipmentWithdraws.FindAsync(id);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(await _withdrawHandler.OutputFor(result, token));
+        }
+
+        [HttpGet]
         [SwaggerOperation("Lists the current withdraws")]
         [SwaggerResponse(200, "The available withdraws", typeof(IEnumerable<OutputWithdraw>))]
         public async Task<IActionResult> ListWithdraws(CancellationToken token)
