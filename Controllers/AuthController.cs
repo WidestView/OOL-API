@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,40 +54,6 @@ namespace OOL_API.Controllers
             var token = GenerateToken(username: user.Cpf!, accessLevel);
 
             return Ok(new {token});
-        }
-
-
-        [Authorize]
-        [HttpGet]
-        [Route("greet")]
-        public async Task<IActionResult> Greet()
-        {
-            var user = HttpContext.User;
-
-            var username = user.Claims.FirstOrDefault(
-                claim => claim.Type == JwtRegisteredClaimNames.Sid);
-
-            if (username == null)
-            {
-                return Unauthorized();
-            }
-
-            var userWithLogin = await FindUserWithLogin(username.Value);
-
-            if (userWithLogin == null)
-            {
-                return Unauthorized();
-            }
-
-            return Ok($"Hello, {userWithLogin.Name}");
-        }
-
-        [Authorize(Roles = AccessLevelInfo.SudoString)]
-        [HttpGet]
-        [Route("sudo-greet")]
-        public Task<IActionResult> SudoGreet()
-        {
-            return Greet();
         }
 
         private async Task<User?> AuthenticateUser(InputLogin login)

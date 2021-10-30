@@ -33,12 +33,12 @@ namespace OOL_API.Services
                 return null;
             }
 
-            return await _context.Users.FindAsync(username.Value);
+            return await _context.Users.FindAsync(keyValues: new object[] {username.Value}, token);
         }
 
-        public async Task<Employee?> GetCurrentEmployee()
+        public async Task<Employee?> GetCurrentEmployee(CancellationToken token = default)
         {
-            var user = await GetCurrentUser();
+            var user = await GetCurrentUser(token);
 
             if (user == null)
             {
@@ -48,7 +48,7 @@ namespace OOL_API.Services
             var employee = await _context.Employees
                 .Include(e => e.User)
                 .Include(e => e.Occupation)
-                .FirstOrDefaultAsync(e => e.UserId == user.Cpf);
+                .FirstOrDefaultAsync(e => e.UserId == user.Cpf, token);
 
             return employee;
         }

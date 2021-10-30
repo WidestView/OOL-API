@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OOL_API.Models;
+using OOL_API.Models.DataTransfer;
 using OOL_API.Services;
 
 #nullable enable
@@ -14,6 +15,7 @@ namespace OOL_API.Controllers
     public class UserController : ControllerBase
     {
         private readonly CurrentUserInfo _currentUserInfo;
+        private readonly OutputUserHandler _outputHandler;
         private readonly IPictureStorage<User, string> _pictureStorage;
 
         public UserController(
@@ -23,6 +25,28 @@ namespace OOL_API.Controllers
         {
             _currentUserInfo = currentUserInfo;
             _pictureStorage = pictureStorage;
+            _outputHandler = new OutputUserHandler();
+        }
+
+        [HttpGet]
+        [Route("greet")]
+        public async Task<IActionResult> Greet(CancellationToken token = default)
+        {
+            var employee = await _currentUserInfo.GetCurrentEmployee(token);
+
+            if (employee != null)
+            {
+                return Ok(_outputHandler.OutputFor(employee));
+            }
+
+            var user = await _currentUserInfo.GetCurrentUser(token);
+
+            if (user != null)
+            {
+                return Ok(_outputHandler.OutputFor(user));
+            }
+
+            return Unauthorized();
         }
 
         [HttpGet]
