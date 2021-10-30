@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OOL_API.Controllers
 {
@@ -29,6 +31,8 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation("Lists the current withdraws")]
+        [SwaggerResponse(200, "The available withdraws", typeof(IEnumerable<OutputWithdraw>))]
         public async Task<IActionResult> ListWithdraws(CancellationToken token)
         {
             var content = await _context.EquipmentWithdraws
@@ -47,6 +51,8 @@ namespace OOL_API.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation("Registers the given equipment withdraw")]
+        [SwaggerResponse(200, "The entry of the given withdraw", typeof(OutputWithdraw))]
         public async Task<IActionResult> AddWithdraw(InputWithdraw input)
         {
             var references = await FindReferences(input);
@@ -62,10 +68,14 @@ namespace OOL_API.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(await _withdrawHandler.OutputFor(withdraw));
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
+        [Route("{id}")]
+        [SwaggerOperation("Updates the given input withdraw")]
+        [SwaggerResponse(200, "The current entry of the given withdraw", typeof(OutputWithdraw))]
+        [SwaggerResponse(404, "Some of the given id references was invalid")]
         public async Task<IActionResult> UpdateWithdraw(int id, InputWithdraw input)
         {
             var entry = await _context.EquipmentWithdraws.FindAsync(id);
