@@ -96,8 +96,7 @@ namespace OOL_API.Controllers
 
             await _context.SaveChangesAsync();
 
-            // todo: add "= default" to OutputFor's cancellation token
-            return Ok(await _withdrawHandler.OutputFor(entry, token: default));
+            return Ok(await _withdrawHandler.OutputFor(entry));
         }
 
         private async Task<(Employee, Equipment, PhotoShoot)?> FindReferences(InputWithdraw input)

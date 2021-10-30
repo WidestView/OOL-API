@@ -52,7 +52,7 @@ namespace OOL_API.Models.DataTransfer
             return handler;
         }
 
-        public Task<OutputWithdraw> OutputFor(EquipmentWithdraw withdraw, CancellationToken token)
+        public Task<OutputWithdraw> OutputFor(EquipmentWithdraw withdraw, CancellationToken token = default)
         {
             return Create(withdraw, _outputFlags, token);
         }
