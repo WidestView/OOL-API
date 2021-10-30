@@ -12,6 +12,7 @@ using OOL_API.Data;
 using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
 using OOL_API.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 #nullable enable
 
@@ -32,10 +33,24 @@ namespace OOL_API.Controllers
             _passwordHash = passwordHash;
         }
 
+        // This is an example of how to annotate a method nicely with
+        // swagger. there is ABSOLUTELY no need to do this for all endpoints.
+        // Feel free to annotate the endpoints you want when you feel bored.
+
+        // The complete reference can be found at
+        // https://github.com/domaindrivendev/Swashbuckle.AspNetCore#swashbuckleaspnetcoreannotations
+
         [AllowAnonymous]
         [Route("login")]
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody] InputLogin login)
+        [SwaggerOperation(
+            Summary = "Authenticates and logins to the current user"
+        )]
+        [SwaggerResponse(200, "The credentials are valid", typeof(TokenResponse))]
+        [SwaggerResponse(401, "The credentials are not valid")]
+        public async Task<IActionResult> Login(
+            [FromBody] InputLogin login
+        )
         {
             if (!ModelState.IsValid)
             {
@@ -51,9 +66,12 @@ namespace OOL_API.Controllers
 
             var accessLevel = await FindUserAccessLevel(user);
 
-            var token = GenerateToken(username: user.Cpf!, accessLevel);
+            var token = GenerateToken(user.Cpf!, accessLevel);
 
-            return Ok(new {token});
+            return Ok(new TokenResponse
+            {
+                Token = token
+            });
         }
 
         private async Task<User?> AuthenticateUser(InputLogin login)
@@ -122,7 +140,7 @@ namespace OOL_API.Controllers
 
             if (accessLevel != null)
             {
-                claims.Add(new Claim(type: "roles", accessLevel));
+                claims.Add(new Claim("roles", accessLevel));
             }
 
             return claims;

@@ -13,4 +13,9 @@ namespace OOL_API.Models.DataTransfer
         [JsonProperty("password")]
         public string Password { get; set; }
     }
+
+    public class TokenResponse
+    {
+        public string Token { get; set; }
+    }
 }
