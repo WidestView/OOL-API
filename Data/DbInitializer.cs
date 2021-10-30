@@ -73,7 +73,7 @@ namespace OOL_API.Data
                 PhotoShoot = photoshoot
             };
 
-            await context.EquipmentWithDraws.AddAsync(withdraw);
+            await context.EquipmentWithdraws.AddAsync(withdraw);
 
             await context.SaveChangesAsync();
         }

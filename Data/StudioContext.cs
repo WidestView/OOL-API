@@ -31,7 +31,7 @@ namespace OOL_API.Data
 
         public DbSet<Order> Orders { get; set; }
 
-        public DbSet<EquipmentWithdraw> EquipmentWithDraws { get; set; }
+        public DbSet<EquipmentWithdraw> EquipmentWithdraws { get; set; }
 
         public DbSet<Equipment> Equipments { get; set; }
 

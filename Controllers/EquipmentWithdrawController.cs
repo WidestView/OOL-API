@@ -30,7 +30,7 @@ namespace OOL_API.Controllers
         [HttpGet]
         public async Task<IActionResult> ListWithdraws(CancellationToken token)
         {
-            var content = await _context.EquipmentWithDraws
+            var content = await _context.EquipmentWithdraws
                 .Include(row => row.PhotoShoot)
                 .Include(row => row.Employee)
                 .Include(row => row.Employee.User)
