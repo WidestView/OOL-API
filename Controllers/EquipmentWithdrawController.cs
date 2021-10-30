@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
+using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
 
 namespace OOL_API.Controllers
@@ -43,6 +44,89 @@ namespace OOL_API.Controllers
                 .ToList();
 
             return Ok(await Task.WhenAll(result));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddWithdraw(InputWithdraw input)
+        {
+            var references = await FindReferences(input);
+
+            if (references == null)
+            {
+                return NotFound();
+            }
+
+            var withdraw = input.ToModel(references.Value);
+
+            await _context.EquipmentWithdraws.AddAsync(withdraw);
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateWithdraw(int id, InputWithdraw input)
+        {
+            var entry = await _context.EquipmentWithdraws.FindAsync(id);
+
+            if (entry == null)
+            {
+                return NotFound();
+            }
+
+            var references = await FindReferences(input);
+
+            if (references == null)
+            {
+                return NotFound();
+            }
+
+            var updated = input.ToModel(references.Value);
+
+            entry.WithdrawDate = updated.WithdrawDate;
+            entry.ExpectedDevolutionDate = updated.ExpectedDevolutionDate;
+            entry.EffectiveDevolutionDate = updated.EffectiveDevolutionDate;
+            entry.PhotoShootId = updated.PhotoShootId;
+            entry.PhotoShoot = updated.PhotoShoot;
+            entry.EmployeeCpf = updated.EmployeeCpf;
+            entry.Employee = updated.Employee;
+            entry.EquipmentId = updated.EquipmentId;
+            entry.Equipment = updated.Equipment;
+
+            await _context.SaveChangesAsync();
+
+            // todo: add "= default" to OutputFor's cancellation token
+            return Ok(await _withdrawHandler.OutputFor(entry, token: default));
+        }
+
+        private async Task<(Employee, Equipment, PhotoShoot)?> FindReferences(InputWithdraw input)
+        {
+            var employee = await _context.Employees.FindAsync(input.EmployeeCpf);
+
+            if (employee == null)
+            {
+                return null;
+            }
+
+            var equipment = await _context.Equipments.FindAsync(input.EquipmentId);
+
+            if (equipment == null)
+            {
+                return null;
+            }
+
+            var shoot = await
+                _context
+                    .PhotoShoots
+                    .FirstOrDefaultAsync(row => row.ResourceId == input.PhotoShootId);
+
+            if (shoot == null)
+            {
+                return null;
+            }
+
+            return (employee, equipment, shoot);
         }
     }
 }
