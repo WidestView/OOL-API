@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -91,7 +92,7 @@ namespace OOL_API.Controllers
         [HttpPut]
         [Route("{id}")]
         [SwaggerOperation("Updates the given input withdraw")]
-        [SwaggerResponse(200, "The current entry of the given withdraw", typeof(OutputWithdraw))]
+        [SwaggerResponse(200, "The updated withdraw", typeof(OutputWithdraw))]
         [SwaggerResponse(404, "Some of the given id references were invalid")]
         public async Task<IActionResult> UpdateWithdraw(int id, InputWithdraw input)
         {
@@ -124,6 +125,37 @@ namespace OOL_API.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(await _withdrawHandler.OutputFor(entry));
+        }
+
+        [HttpGet]
+        [Route("finish/{id}")]
+        [SwaggerOperation(
+            Summary = "Sets the effective devolution date of an withdraw",
+            Description = "This operation is idempotent, if the effective devolution date has already been set, " +
+                          "no operation will occur."
+        )]
+        [SwaggerResponse(404, "There is no withdraw with the given id")]
+        [SwaggerResponse(200, "The withdraw was successfully updated")]
+        [SwaggerResponse(202, "The withdraw effective devolution date has already been set")]
+        public async Task<IActionResult> FinishWithdraw(int id)
+        {
+            var entry = await _context.EquipmentWithdraws.FindAsync(id);
+
+            if (entry == null)
+            {
+                return NotFound();
+            }
+
+            if (entry.EffectiveDevolutionDate != null)
+            {
+                return Accepted();
+            }
+
+            entry.EffectiveDevolutionDate = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         private async Task<(Employee, Equipment, PhotoShoot)?> FindReferences(InputWithdraw input)
