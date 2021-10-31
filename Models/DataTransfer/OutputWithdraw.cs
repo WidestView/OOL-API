@@ -96,7 +96,7 @@ namespace OOL_API.Models.DataTransfer
                 if (withdraw.Equipment == null)
                 {
                     await _context.Entry(withdraw)
-                        .Reference(row => row.Employee)
+                        .Reference(row => row.Equipment)
                         .LoadAsync(token);
                 }
 
@@ -109,11 +109,11 @@ namespace OOL_API.Models.DataTransfer
                 if (withdraw.PhotoShoot == null)
                 {
                     await _context.Entry(withdraw)
-                        .Reference(row => row.Employee)
+                        .Reference(row => row.PhotoShoot)
                         .LoadAsync(token);
                 }
 
-                result.PhotoShoot = new OutputPhotoShoot(withdraw.PhotoShoot, withReferences: false);
+                result.PhotoShoot = new OutputPhotoShoot(withdraw.PhotoShoot, false);
             }
 
             return result;

@@ -92,7 +92,7 @@ namespace OOL_API.Controllers
         [Route("{id}")]
         [SwaggerOperation("Updates the given input withdraw")]
         [SwaggerResponse(200, "The current entry of the given withdraw", typeof(OutputWithdraw))]
-        [SwaggerResponse(404, "Some of the given id references was invalid")]
+        [SwaggerResponse(404, "Some of the given id references were invalid")]
         public async Task<IActionResult> UpdateWithdraw(int id, InputWithdraw input)
         {
             var entry = await _context.EquipmentWithdraws.FindAsync(id);
