@@ -104,7 +104,7 @@ namespace OOL_API.Controllers
             return CreatedAtAction(
                 nameof(GetDetails),
                 new {id = details.Id},
-                _detailsHandler.OutputFor(details)
+                await _detailsHandler.OutputFor(details)
             );
         }
 
