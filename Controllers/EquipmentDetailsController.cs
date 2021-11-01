@@ -9,6 +9,7 @@ using OOL_API.Data;
 using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
 using OOL_API.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OOL_API.Controllers
 {
@@ -38,6 +39,8 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation("Lists all available equipment details")]
+        [SwaggerResponse(200, "The available details", typeof(IEnumerable<OutputEquipmentDetails>))]
         public async Task<IEnumerable<OutputEquipmentDetails>> ListDetails(CancellationToken token = default)
         {
             var result = await _context.EquipmentDetails
@@ -51,6 +54,9 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation("Returns the equipment details with the given id")]
+        [SwaggerResponse(404, "No details were found with the given id")]
+        [SwaggerResponse(200, "The equipment details", typeof(OutputEquipmentDetails))]
         [Route("{id}")]
         public async Task<IActionResult> GetDetails(int id, CancellationToken token = default)
         {
@@ -73,6 +79,8 @@ namespace OOL_API.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation("Register an equipment details")]
+        [SwaggerResponse(201, "The entry of the registered details", typeof(OutputEquipmentDetails))]
         public async Task<IActionResult> AddEquipmentDetails([FromBody] InputEquipmentDetails input)
         {
             if (!ModelState.IsValid)
@@ -94,14 +102,17 @@ namespace OOL_API.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(
-                actionName: nameof(GetDetails),
-                routeValues: new {id = details.Id},
-                value: _detailsHandler.OutputFor(details)
+                nameof(GetDetails),
+                new {id = details.Id},
+                _detailsHandler.OutputFor(details)
             );
         }
 
         [HttpPut]
         [Route("{id}")]
+        [SwaggerOperation("Updates an equipment details")]
+        [SwaggerResponse(404, "Some of the required references were not found")]
+        [SwaggerResponse(200, "The entry of the updated details", typeof(OutputEquipmentDetails))]
         public async Task<IActionResult> UpdateDetails(int id, [FromBody] InputEquipmentDetails input)
         {
             if (!ModelState.IsValid)
@@ -129,11 +140,14 @@ namespace OOL_API.Controllers
 
         [HttpPost]
         [Route("image/{id}")]
-        public async Task<IActionResult> PostImage(int id, [FromForm] IFormFile file, CancellationToken token = default)
+        [SwaggerOperation("Uploads the image of an equipment details")]
+        [SwaggerResponse(200, "The image was uploaded successfully")]
+        [SwaggerResponse(415, "The image content type is not supported")]
+        public async Task<IActionResult> PostImage(int id, [FromForm] IFormFile file)
         {
             if (!IPictureStorageInfo.IsSupported(file?.ContentType))
             {
-                return StatusCode(400);
+                return new UnsupportedMediaTypeResult();
             }
 
             var entry = await _context.EquipmentDetails.FindAsync(id);
@@ -152,6 +166,9 @@ namespace OOL_API.Controllers
 
         [HttpGet]
         [Route("image/{id}")]
+        [SwaggerOperation("Retrieves the image from the given details")]
+        [SwaggerResponse(404, "No equipment details were found with given id")]
+        [SwaggerResponse(200, "The image of the given equipment details")]
         public async Task<IActionResult> GetImage(int id)
         {
             var content = await _pictureStorage.GetPicture(id);
@@ -161,11 +178,14 @@ namespace OOL_API.Controllers
                 return NotFound();
             }
 
-            return File(content, contentType: "image/jpeg");
+            return File(content, "image/jpeg");
         }
 
         [HttpDelete]
         [Route("{id}")]
+        [SwaggerOperation("Archives an equipment details")]
+        [SwaggerResponse(404, "No equipment details were found with given id")]
+        [SwaggerResponse(200, "The details were successfully archived")]
         public async Task<IActionResult> Archive(int id)
         {
             var entry = await _context.EquipmentDetails.FindAsync(id);
