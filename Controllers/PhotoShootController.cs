@@ -84,25 +84,20 @@ namespace OOL_API.Controllers
         [SwaggerResponse(200, "The photoshoot entry")]
         public async Task<IActionResult> Add([FromBody] InputPhotoShoot input)
         {
-            if (ModelState.IsValid)
+            var shot = input.ToPhotoShoot();
+
+            if (await _context.Orders.FindAsync(shot.OrderId) == null)
             {
-                var shot = input.ToPhotoShoot();
-
-                if (await _context.Orders.FindAsync(shot.OrderId) == null)
-                {
-                    return NotFound();
-                }
-
-                await _context.PhotoShoots.AddAsync(shot);
-
-                await _context.SaveChangesAsync();
-
-                var output = new OutputPhotoShoot(shot, true);
-
-                return CreatedAtAction("GetById", new {id = shot.ResourceId}, output);
+                return NotFound();
             }
 
-            return new BadRequestObjectResult(ModelState);
+            await _context.PhotoShoots.AddAsync(shot);
+
+            await _context.SaveChangesAsync();
+
+            var output = new OutputPhotoShoot(shot, true);
+
+            return CreatedAtAction("GetById", new {id = shot.ResourceId}, output);
         }
 
         [HttpPut]
