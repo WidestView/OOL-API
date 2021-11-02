@@ -55,7 +55,7 @@ namespace OOL_API.Controllers
                     shoot => shoot.Employees.Any(e => e.UserId == employee.UserId))
                 .ToListAsync();
 
-            return Ok(shoots.Select(s => new OutputPhotoShoot(s, withReferences: false)));
+            return Ok(shoots.Select(s => new OutputPhotoShoot(s, false)));
         }
 
 
@@ -75,7 +75,7 @@ namespace OOL_API.Controllers
                 return NotFound();
             }
 
-            return Ok(new OutputPhotoShoot(result, withReferences: true));
+            return Ok(new OutputPhotoShoot(result, true));
         }
 
         [HttpPost("add")]
@@ -97,12 +97,39 @@ namespace OOL_API.Controllers
 
                 await _context.SaveChangesAsync();
 
-                var output = new OutputPhotoShoot(shot, withReferences: true);
+                var output = new OutputPhotoShoot(shot, true);
 
-                return CreatedAtAction(actionName: "GetById", routeValues: new {id = shot.ResourceId}, output);
+                return CreatedAtAction("GetById", new {id = shot.ResourceId}, output);
             }
 
             return new BadRequestObjectResult(ModelState);
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        [SwaggerOperation("Updates a given photoshoot")]
+        [SwaggerResponse(200, "The updated photoshoot entry", typeof(OutputPhotoShoot))]
+        [SwaggerResponse(404, "The photoshoot with the given id was not found")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] InputPhotoShoot input)
+        {
+            var entry = await _context.PhotoShoots
+                .FirstOrDefaultAsync(row => row.ResourceId == id);
+
+            if (entry == null)
+            {
+                return NotFound();
+            }
+
+            var updated = input.ToPhotoShoot();
+
+            entry.OrderId = updated.OrderId;
+            entry.Address = updated.Address;
+            entry.Start = updated.Start;
+            entry.Duration = updated.Duration;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new OutputPhotoShoot(entry, true));
         }
     }
 }
