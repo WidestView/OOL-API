@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using OOL_API.Models;
 using OOL_API.Services;
 
@@ -26,30 +28,31 @@ namespace OOL_API.Data
                 await context.Database.EnsureDeletedAsync();
             }
 
-            await context.Database.EnsureCreatedAsync();
+            var creator = context.Database.GetService<IRelationalDatabaseCreator>();
 
-            var alreadyInitialized = context.Packages.Any();
+            // We first check if the database exists before initializing because
+            // it can crash if we don't.
 
-            if (alreadyInitialized)
+            if (!await creator.ExistsAsync())
             {
-                return;
+                await context.Database.EnsureCreatedAsync();
+
+                await CreatePackages(context);
+
+                await CreateUsers(context);
+
+                await CreateEmployees(context);
+
+                await CreateCustomers(context);
+
+                await CreateOrders(context);
+
+                await CreatePhotoshoots(context);
+
+                await CreateEquipments(context);
+
+                await CreateWithdraw(context);
             }
-
-            await CreatePackages(context);
-
-            await CreateUsers(context);
-
-            await CreateEmployees(context);
-
-            await CreateCustomers(context);
-
-            await CreateOrders(context);
-
-            await CreatePhotoshoots(context);
-
-            await CreateEquipments(context);
-
-            await CreateWithdraw(context);
         }
 
         private async Task CreateWithdraw(StudioContext context)
