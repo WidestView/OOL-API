@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 using OOL_API.Models;
+using OOL_API.Models.DataTransfer;
 using OOL_API.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -14,6 +16,8 @@ namespace OOL_API.Controllers
     public class PackageController : ControllerBase
     {
         private readonly StudioContext _context;
+
+        private readonly OutputPackageHandler _packageHandler = new OutputPackageHandler();
 
         private readonly IPictureStorage<Package, int> _pictureStorage;
 
@@ -27,7 +31,9 @@ namespace OOL_API.Controllers
         [SwaggerResponse(200, "The available packages", typeof(IEnumerable<Package>))]
         public async Task<IActionResult> GetProducts()
         {
-            return Ok(await _context.Packages.ToListAsync());
+            var result = await _context.Packages.ToListAsync();
+
+            return Ok(result.Select(row => _packageHandler.OutputFor(row)));
         }
 
         [HttpGet("{id}")]
@@ -43,7 +49,7 @@ namespace OOL_API.Controllers
                 return NotFound();
             }
 
-            return Ok(package);
+            return Ok(_packageHandler.OutputFor(package));
         }
 
         [HttpGet("{id}/image")]
@@ -64,14 +70,16 @@ namespace OOL_API.Controllers
 
         [HttpPost]
         [SwaggerOperation("Registers a new package")]
-        [SwaggerResponse(200, "The added package entry", typeof(Package))]
-        public async Task<IActionResult> PostProduct(Package package)
+        [SwaggerResponse(200, "The added package entry", typeof(OutputPackage))]
+        public async Task<IActionResult> PostProduct(InputPackage input)
         {
+            var package = input.ToModel();
+
             await _context.Packages.AddAsync(package);
 
             await _context.SaveChangesAsync();
 
-            return Ok(package);
+            return Ok(_packageHandler.OutputFor(package));
         }
     }
 }
