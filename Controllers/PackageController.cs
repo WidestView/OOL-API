@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 using OOL_API.Models;
 using OOL_API.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OOL_API.Controllers
 {
@@ -22,13 +23,18 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Package>>> GetProducts()
+        [SwaggerOperation("Lists all available photoshoot packages")]
+        [SwaggerResponse(200, "The available packages", typeof(IEnumerable<Package>))]
+        public async Task<IActionResult> GetProducts()
         {
-            return await _context.Packages.ToListAsync();
+            return Ok(await _context.Packages.ToListAsync());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Package>> GetProduct(int id)
+        [SwaggerOperation("Returns the package with the given ID")]
+        [SwaggerResponse(200, "The package entry", typeof(Package))]
+        [SwaggerResponse(404, "There was no package found with the given ID")]
+        public async Task<IActionResult> GetProduct(int id)
         {
             var package = await _context.Packages.FindAsync(id);
 
@@ -37,30 +43,35 @@ namespace OOL_API.Controllers
                 return NotFound();
             }
 
-            return package;
+            return Ok(package);
         }
 
         [HttpGet("{id}/image")]
+        [SwaggerOperation("Returns the image of the package with the given ID")]
+        [SwaggerResponse(200, "The image of the package")]
+        [SwaggerResponse(404, "No image was found for the package with the given ID")]
         public async Task<IActionResult> GetImageContent(int id)
         {
             var content = await _pictureStorage.GetPicture(id);
 
             if (content != null)
             {
-                return File(content, contentType: "image/jpeg");
+                return File(content, "image/jpeg");
             }
 
             return NotFound();
         }
 
         [HttpPost]
-        public async Task<ActionResult<Package>> PostProduct(Package package)
+        [SwaggerOperation("Registers a new package")]
+        [SwaggerResponse(200, "The added package entry", typeof(Package))]
+        public async Task<IActionResult> PostProduct(Package package)
         {
             await _context.Packages.AddAsync(package);
 
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(actionName: "GetProduct", routeValues: new {id = package.Id}, package);
+            return Ok(package);
         }
     }
 }
