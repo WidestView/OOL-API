@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -80,7 +81,13 @@ namespace OOL_API
 
                     config.Filters.Add(new AuthorizeFilter(policy));
                 }
-            });
+            }).AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions
+                        .Converters
+                        .Add(new JsonStringEnumConverter());
+                }
+            );
         }
 
         private void ConfigureHash(IServiceCollection services)
@@ -215,7 +222,10 @@ namespace OOL_API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
             app.UseCors("ApiCorsPolicy");
 
