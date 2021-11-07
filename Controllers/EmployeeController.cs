@@ -56,6 +56,7 @@ namespace OOL_API.Controllers
         public async Task<IActionResult> ListEmployees()
         {
             var result = await _context.Employees
+                .Include(employee => employee.Occupation)
                 .Include(employee => employee.User)
                 .Where(row => row.User.Active)
                 .ToListAsync();

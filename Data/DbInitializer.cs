@@ -136,7 +136,7 @@ namespace OOL_API.Data
                 },
                 new User
                 {
-                    Active = false,
+                    Active = true,
                     BirthDate = DateTime.UtcNow - TimeSpan.FromDays(14600),
                     Cpf = _settings.SuperUserCpf,
                     Email = _settings.SuperUserEmail,
@@ -159,8 +159,8 @@ namespace OOL_API.Data
         {
             var occupation = new Occupation
             {
-                Description = "Sleep",
-                Name = "Idk"
+                Description = "Idk",
+                Name = "Sleep"
             };
 
             await context.Occupations.AddAsync(occupation);
