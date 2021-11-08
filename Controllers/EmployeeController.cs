@@ -18,6 +18,7 @@ namespace OOL_API.Controllers
     [Route("api/[controller]")]
     public class EmployeeController : ControllerBase
     {
+        private readonly OutputAccessLevelHandler _accessLevelHandler;
         private readonly StudioContext _context;
         private readonly CurrentUserInfo _currentUserInfo;
         private readonly IPasswordHash _passwordHash;
@@ -31,6 +32,7 @@ namespace OOL_API.Controllers
             _currentUserInfo = currentUserInfo;
             _context = context;
             _passwordHash = passwordHash;
+            _accessLevelHandler = new OutputAccessLevelHandler();
         }
 
         [HttpGet]
@@ -126,6 +128,25 @@ namespace OOL_API.Controllers
             }
 
             return await UpdateEntry(input);
+        }
+
+        [HttpGet]
+        [Route("levels")]
+        [SwaggerOperation("Lists available access levels")]
+        [SwaggerResponse(200, "The available access levels", typeof(IEnumerable<OutputAccessLevel>))]
+        public IActionResult ListAccessLevels()
+        {
+            return Ok(_accessLevelHandler.ListFromEnum());
+        }
+
+
+        [HttpGet]
+        [Route("occupations")]
+        [SwaggerOperation("Lists available occupations")]
+        [SwaggerResponse(200, "The available occupations", typeof(IEnumerable<Occupation>))]
+        public async Task<IActionResult> ListOccupations()
+        {
+            return Ok(await _context.Occupations.ToListAsync());
         }
 
 

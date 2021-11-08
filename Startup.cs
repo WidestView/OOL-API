@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -81,13 +80,7 @@ namespace OOL_API
 
                     config.Filters.Add(new AuthorizeFilter(policy));
                 }
-            }).AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions
-                        .Converters
-                        .Add(new JsonStringEnumConverter());
-                }
-            );
+            });
         }
 
         private void ConfigureHash(IServiceCollection services)
