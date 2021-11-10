@@ -37,7 +37,9 @@ namespace OOL_API.Models.DataTransfer
                     Cpf = Cpf,
                     Email = Email,
                     Name = Name,
-                    Password = passwordHash.Of(Password),
+                    Password = this.Password == null 
+                        ?  null
+                        : passwordHash.Of(this.Password),
                     Phone = Phone,
                     SocialName = SocialName
                 },

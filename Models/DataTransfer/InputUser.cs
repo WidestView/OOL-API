@@ -32,7 +32,6 @@ namespace OOL_API.Models.DataTransfer
         [MaxLength(255)]
         public string Email { get; set; }
 
-        [Required]
         [MaxLength(64)]
         public string Password { get; set; }
     }

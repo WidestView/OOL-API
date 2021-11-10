@@ -90,7 +90,7 @@ namespace OOL_API.Controllers
             if (input.Cpf == currentEmployee.UserId)
             {
                 ModelState.AddModelError("", "Self updates must be done through the " +
-                                             "/api/employee/self endpoint");
+                                             "/api/employee/info endpoint");
 
                 return BadRequest(ModelState);
             }
@@ -99,7 +99,7 @@ namespace OOL_API.Controllers
         }
 
         [HttpPut]
-        [Route("self")]
+        [Route("info")]
         [SwaggerOperation("Updates the entry of the current employee")]
         [SwaggerResponse(200, "The updated entry", typeof(OutputEmployee))]
         [SwaggerResponse(401, "The employee was not authenticated")]
@@ -180,11 +180,17 @@ namespace OOL_API.Controllers
             entry.User.BirthDate = updated.User.BirthDate;
             entry.User.Phone = updated.User.Phone;
             entry.User.Email = updated.User.Email;
-            entry.User.Password = updated.User.Password;
             entry.Gender = updated.Gender;
             entry.Rg = updated.Rg;
             entry.OccupationId = updated.OccupationId;
             entry.AccessLevel = updated.AccessLevel;
+
+            // we ignore password changes if the input 
+            // did not request one.
+
+            if (input.Password != null) {
+                entry.User.Password = updated.User.Password;
+            }
 
             await _context.SaveChangesAsync();
 
