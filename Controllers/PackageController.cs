@@ -81,5 +81,33 @@ namespace OOL_API.Controllers
 
             return Ok(_packageHandler.OutputFor(package));
         }
+
+        [HttpPut]
+        [Route("{id}")]
+        [SwaggerOperation("Updates a package")]
+        [SwaggerResponse(200, "The updated package entry", typeof(OutputPackage))]
+        [SwaggerResponse(404, "No existing package was found with the given ID")]
+        public async Task<IActionResult> UpdateProduct(int id, InputPackage input)
+        {
+            var currentPackage = await _context.Packages.FindAsync(id);
+
+            if (currentPackage == null) return NotFound();
+
+            var newPackage = input.ToModel();
+
+            currentPackage.Name = newPackage.Name;
+            currentPackage.Description = newPackage.Description;
+            currentPackage.BaseValue = newPackage.BaseValue;
+            currentPackage.PricePerPhoto = newPackage.PricePerPhoto;
+            currentPackage.ImageQuantity = newPackage.ImageQuantity;
+            currentPackage.QuantityMultiplier = newPackage.QuantityMultiplier;
+            currentPackage.QuantityMultiplier = newPackage.QuantityMultiplier;
+            currentPackage.MaxIterations = newPackage.MaxIterations;
+            currentPackage.Available = newPackage.Available;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(_packageHandler.OutputFor(currentPackage));
+        }
     }
 }
