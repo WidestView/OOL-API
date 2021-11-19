@@ -23,17 +23,20 @@ namespace OOL_API.Controllers
         private readonly CurrentUserInfo _currentUserInfo;
         private readonly OutputUserHandler _outputHandler;
         private readonly IPictureStorage<User, string> _pictureStorage;
+        private readonly IPasswordHash _passwordHash;
 
         public UserController(
             CurrentUserInfo currentUserInfo,
             StudioContext context,
-            IPictureStorage<User, string> pictureStorage
+            IPictureStorage<User, string> pictureStorage,
+            IPasswordHash passwordHash
         )
         {
             _currentUserInfo = currentUserInfo;
             _context = context;
             _pictureStorage = pictureStorage;
             _outputHandler = new OutputUserHandler();
+            _passwordHash = passwordHash;
         }
 
         [HttpGet]
@@ -86,6 +89,7 @@ namespace OOL_API.Controllers
 
         public async Task<IActionResult> PostUser(InputUser inputUser, [FromServices] IOptions<ApiBehaviorOptions> apiBehaviorOptions)
         {
+            inputUser.HashPassword(_passwordHash);
             var user = inputUser.ToModel();
 
             if (await CpfExists(user.Cpf)) ModelState.AddModelError(nameof(user.Cpf), "User Cpf already in use");

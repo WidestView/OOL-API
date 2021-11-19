@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using OOL_API.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -54,6 +55,8 @@ namespace OOL_API.Models.DataTransfer
                 );
             }
         }
+
+        public void HashPassword(IPasswordHash passwordHash) => Password = passwordHash.Of(Password);
 
         public User ToModel() => new User()
         {
