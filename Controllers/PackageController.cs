@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
@@ -27,6 +28,7 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         [SwaggerOperation("Lists all available photoshoot packages")]
         [SwaggerResponse(200, "The available packages", typeof(IEnumerable<Package>))]
         public async Task<IActionResult> GetProducts()
