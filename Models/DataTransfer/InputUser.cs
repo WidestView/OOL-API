@@ -51,7 +51,7 @@ namespace OOL_API.Models.DataTransfer
             if (age < 12) 
             {
                 yield return new ValidationResult(
-                    "The User must be at least 12 years old, as described in our Terms of Service"
+                    "The User must be at least 12 years old, as described in our Terms of Service", new string[] { nameof(BirthDate) }
                 );
             }
         }
