@@ -55,6 +55,7 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet("{id}/image")]
+        [AllowAnonymous]
         [SwaggerOperation("Returns the image of the package with the given ID")]
         [SwaggerResponse(200, "The image of the package")]
         [SwaggerResponse(404, "No image was found for the package with the given ID")]
