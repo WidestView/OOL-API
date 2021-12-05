@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
@@ -51,15 +52,18 @@ namespace OOL_API.Controllers
                 return Unauthorized();
             }
 
-            var shoots = await _context.PhotoShoots.Where(
+            var shoots = await _context.PhotoShoots
+                .Include(shot => shot.Images)
+                .Where(
                     shoot => shoot.Employees.Any(e => e.UserId == employee.UserId))
                 .ToListAsync();
 
-            return Ok(shoots.Select(s => new OutputPhotoShoot(s, false)));
+            return Ok(shoots.Select(s => new OutputPhotoShoot(s, true)));
         }
 
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         [SwaggerOperation("Gets a photoshoot by its ID")]
         [SwaggerResponse(200, "The photoshoot", typeof(OutputPhotoShoot))]
         [SwaggerResponse(404, "No photoshoot was found with the given ID")]
