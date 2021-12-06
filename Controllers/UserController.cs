@@ -153,7 +153,7 @@ namespace OOL_API.Controllers
             return Ok(true);
         }
 
-        private async Task<bool> CpfExists(string cpf) => (await _context.Users.FirstOrDefaultAsync(user => user.Cpf == cpf)) != null;
+        private async Task<bool> CpfExists(string cpf) => (await _context.Users.FirstOrDefaultAsync(user => user.Cpf == cpf.Replace(".", "").Replace("-", ""))) != null;
         private async Task<bool> EmailExists(string email) => (await _context.Users.FirstOrDefaultAsync(user => user.Email == email)) != null;
     }
 }

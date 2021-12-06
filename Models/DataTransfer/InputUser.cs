@@ -11,8 +11,8 @@ namespace OOL_API.Models.DataTransfer
     public class InputUser : IValidatableObject
     {
         [Required]
-        [MaxLength(11)]
-        [RegularExpression(@"^\d+$")]
+        [MinLength(11)]
+        [MaxLength(14)]
         [Remote(action: "VerifyCpf", controller: "User")]
         public string Cpf { get; set; }
 
@@ -60,7 +60,7 @@ namespace OOL_API.Models.DataTransfer
 
         public User ToModel() => new User()
         {
-            Cpf = Cpf,
+            Cpf = Cpf.Replace(".", "").Replace("-", ""),
             Name = Name,
             SocialName = SocialName,
             BirthDate = BirthDate,
