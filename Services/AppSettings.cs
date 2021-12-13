@@ -52,8 +52,8 @@ namespace OOL_API.Services
 
             ResetDatabaseOnBoot = bool.Parse(configuration["ResetDatabaseOnBoot"] ?? "true");
 
-            DefaultUserCpf = configuration["DefaultUser:Login"]
-                             ?? throw Missing("DefaultUser.Login");
+            DefaultUserCpf = configuration["DefaultUser:Cpf"]
+                             ?? throw Missing("DefaultUser.Cpf");
 
             DefaultUserEmail = configuration["DefaultUser:Email"]
                                ?? throw Missing("DefaultUser.Email");
@@ -63,8 +63,8 @@ namespace OOL_API.Services
 
             RequireAuth = bool.Parse(configuration["RequireAuth"] ?? "false");
 
-            SuperUserCpf = configuration["SudoUser:Login"]
-                           ?? throw Missing("SudoUser.Login");
+            SuperUserCpf = configuration["SudoUser:Cpf"]
+                           ?? throw Missing("SudoUser.Cpf");
 
             SuperUserEmail = configuration["SudoUser:Email"]
                              ?? throw Missing("SudoUser:Email");

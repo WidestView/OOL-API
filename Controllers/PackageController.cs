@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
@@ -27,6 +28,7 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         [SwaggerOperation("Lists all available photoshoot packages")]
         [SwaggerResponse(200, "The available packages", typeof(IEnumerable<Package>))]
         public async Task<IActionResult> GetProducts()
@@ -53,6 +55,7 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet("{id}/image")]
+        [AllowAnonymous]
         [SwaggerOperation("Returns the image of the package with the given ID")]
         [SwaggerResponse(200, "The image of the package")]
         [SwaggerResponse(404, "No image was found for the package with the given ID")]
@@ -80,6 +83,34 @@ namespace OOL_API.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(_packageHandler.OutputFor(package));
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        [SwaggerOperation("Updates a package")]
+        [SwaggerResponse(200, "The updated package entry", typeof(OutputPackage))]
+        [SwaggerResponse(404, "No existing package was found with the given ID")]
+        public async Task<IActionResult> UpdateProduct(int id, InputPackage input)
+        {
+            var currentPackage = await _context.Packages.FindAsync(id);
+
+            if (currentPackage == null) return NotFound();
+
+            var newPackage = input.ToModel();
+
+            currentPackage.Name = newPackage.Name;
+            currentPackage.Description = newPackage.Description;
+            currentPackage.BaseValue = newPackage.BaseValue;
+            currentPackage.PricePerPhoto = newPackage.PricePerPhoto;
+            currentPackage.ImageQuantity = newPackage.ImageQuantity;
+            currentPackage.QuantityMultiplier = newPackage.QuantityMultiplier;
+            currentPackage.QuantityMultiplier = newPackage.QuantityMultiplier;
+            currentPackage.MaxIterations = newPackage.MaxIterations;
+            currentPackage.Available = newPackage.Available;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(_packageHandler.OutputFor(currentPackage));
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +50,7 @@ namespace OOL_API.Controllers
 
 #endif
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetImageContent(Guid id, CancellationToken token = default)
         {
@@ -83,7 +85,7 @@ namespace OOL_API.Controllers
         [HttpPost("upload/{photoShootResourceId}")]
         public async Task<IActionResult> UploadImage(Guid photoShootResourceId, [FromForm] IFormFile file)
         {
-            if (IPictureStorageInfo.IsSupported(file.ContentType))
+            if (!IPictureStorageInfo.IsSupported(file.ContentType))
             {
                 return StatusCode(400);
             }
