@@ -5,11 +5,11 @@ namespace OOL_API.Models.DataTransfer
 {
     public class InputLogin
     {
-        [Required]
+        [Required(ErrorMessage = "O login é obrigatório")]
         [JsonProperty("login")]
         public string Login { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "A senha é obrigatória")]
         [JsonProperty("password")]
         public string Password { get; set; }
     }

@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
-using OOL_API.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
+using OOL_API.Services;
 
 // ReSharper disable MemberCanBeProtected.Global
 
@@ -10,63 +10,70 @@ namespace OOL_API.Models.DataTransfer
 {
     public class InputUser : IValidatableObject
     {
-        [Required]
-        [MinLength(11)]
-        [MaxLength(14)]
-        [Remote(action: "VerifyCpf", controller: "User")]
+        [Required(ErrorMessage = "O CPF é obrigatório")]
+        [MinLength(11, ErrorMessage = "O CPF precisa de ao menos 11 caracteres")]
+        [MaxLength(14, ErrorMessage = "O CPF precisa de no máximo 14 caracteres")]
+        [Remote("VerifyCpf", "User", ErrorMessage = "O CPF já está em uso.")]
         public string Cpf { get; set; }
 
-        [Required]
-        [MaxLength(255)]
+        [Required(ErrorMessage = "O nome é obrigatório")]
+        [MaxLength(255, ErrorMessage = "O limite é de 255 caracteres")]
         public string Name { get; set; }
 
-        [MaxLength(255)]
+        [MaxLength(255, ErrorMessage = "O limite é de 255 caracteres")]
         public string SocialName { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "A data de nascimento é obrigatória")]
         public DateTime BirthDate { get; set; }
 
-        [Required]
-        [MaxLength(15)]
-        [MinLength(10)]
+        [Required(ErrorMessage = "A o telefone é obrigatório")]
+        [MaxLength(15, ErrorMessage = "O telefone deve ter ao máximo 15 caracteres")]
+        [MinLength(10, ErrorMessage = "O telefone deve ter no mínimo 10 caracteres")]
         public string Phone { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "O Email é obrigatório")]
         [EmailAddress]
-        [MaxLength(255)]
-        [Remote(action: "VerifyEmail", controller: "User")]
+        [MaxLength(255, ErrorMessage = "O email deve ter ao máximo 255 caracteres")]
+        [Remote("VerifyEmail", "User", ErrorMessage = "Email já em uso.")]
         public string Email { get; set; }
 
-        [MaxLength(64)]
+        [MaxLength(64, ErrorMessage = "A senha deve ter ao máximo 64 caracteres")]
         public string Password { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            DateTime zeroTime = new DateTime(1, 1, 1);
-            TimeSpan span = DateTime.Now - BirthDate;
+            var zeroTime = new DateTime(1, 1, 1);
+            var span = DateTime.Now - BirthDate;
 
-            int age = span.TotalSeconds > 0? (zeroTime + span).Year - 1 : 0;
+            var age = span.TotalSeconds > 0 ? (zeroTime + span).Year - 1 : 0;
 
-            if (age < 12) 
+            if (age < 12)
             {
                 yield return new ValidationResult(
-                    "The User must be at least 12 years old, as described in our Terms of Service", new string[] { nameof(BirthDate) }
+                    "O usuário deve ter pelo menos 12 anos :/",
+                    new[] {nameof(BirthDate)}
                 );
             }
         }
 
-        public void HashPassword(IPasswordHash passwordHash) => Password = passwordHash.Of(Password);
-
-        public User ToModel() => new User()
+        public void HashPassword(IPasswordHash passwordHash)
         {
-            Cpf = Cpf.Replace(".", "").Replace("-", ""),
-            Name = Name,
-            SocialName = SocialName,
-            BirthDate = BirthDate,
-            Phone = Phone,
-            Email = Email,
-            Active = true,
-            Password = Password
-        };
+            Password = passwordHash.Of(Password);
+        }
+
+        public User ToModel()
+        {
+            return new User
+            {
+                Cpf = Cpf.Replace(".", "").Replace("-", ""),
+                Name = Name,
+                SocialName = SocialName,
+                BirthDate = BirthDate,
+                Phone = Phone,
+                Email = Email,
+                Active = true,
+                Password = Password
+            };
+        }
     }
 }
