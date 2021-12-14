@@ -171,14 +171,14 @@ namespace OOL_API.Data
                 new Employee
                 {
                     AccessLevel = AccessLevel.Default,
-                    Gender = "Attack Helicopter",
+                    Gender = "male",
                     Rg = "102010102010",
                     OccupationId = occupation.Id
                 },
                 new Employee
                 {
                     AccessLevel = AccessLevel.Sudo,
-                    Gender = "IEEE 754 Standard for Floating-Point Arithmetic",
+                    Gender = "male",
                     Rg = "102010102010",
                     OccupationId = occupation.Id
                 }
