@@ -33,7 +33,8 @@ namespace OOL_API.Controllers
         {
             return Ok(
                 await _context.PhotoShoots
-                    .Select(shoot => new OutputPhotoShoot(shoot, false))
+                    .Include(shoot => shoot.Images)
+                    .Select(shoot => new OutputPhotoShoot(shoot, true))
                     .ToListAsync()
             );
         }
