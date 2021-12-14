@@ -188,6 +188,8 @@ namespace OOL_API.Controllers
 
             await _context.Employees.AddAsync(employee);
 
+            await _context.SaveChangesAsync();
+
             return Ok(new OutputEmployee(employee));
         }
 

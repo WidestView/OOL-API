@@ -61,7 +61,9 @@ namespace OOL_API.Controllers
 
             await _context.Orders.AddAsync(order);
 
-            return Ok();
+            await _context.SaveChangesAsync();
+
+            return Ok(await _handler.OutputFor(order));
         }
 
         private static decimal CalculatePrice(Package package, int inputImageQuantity)
