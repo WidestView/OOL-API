@@ -34,7 +34,7 @@ namespace OOL_API.Models.DataTransfer
                 {
                     Active = true,
                     BirthDate = BirthDate,
-                    Cpf = Cpf,
+                    Cpf = Misc.StripCpf(Cpf),
                     Email = Email,
                     Name = Name,
                     Password = Password == null

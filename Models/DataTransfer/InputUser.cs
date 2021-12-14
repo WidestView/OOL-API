@@ -13,6 +13,7 @@ namespace OOL_API.Models.DataTransfer
         [Required(ErrorMessage = "O CPF é obrigatório")]
         [MinLength(11, ErrorMessage = "O CPF precisa de ao menos 11 caracteres")]
         [MaxLength(14, ErrorMessage = "O CPF precisa de no máximo 14 caracteres")]
+        [RegularExpression(@"^\d{3}[.-]?\d{3}[.-]?\d{3}[.-]?\d{2}$", ErrorMessage = "O CPF deve ser numérico")]
         [Remote("VerifyCpf", "User", ErrorMessage = "O CPF já está em uso.")]
         public string Cpf { get; set; }
 
@@ -29,6 +30,7 @@ namespace OOL_API.Models.DataTransfer
         [Required(ErrorMessage = "A o telefone é obrigatório")]
         [MaxLength(15, ErrorMessage = "O telefone deve ter ao máximo 15 caracteres")]
         [MinLength(10, ErrorMessage = "O telefone deve ter no mínimo 10 caracteres")]
+        [RegularExpression(@"^[\d\(\)-]+$", ErrorMessage = "O telefone deve ser numérico")]
         public string Phone { get; set; }
 
         [Required(ErrorMessage = "O Email é obrigatório")]

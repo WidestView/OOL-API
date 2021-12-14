@@ -17,6 +17,7 @@ namespace OOL_API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class EmployeeController : ControllerBase
+
     {
         private readonly OutputAccessLevelHandler _accessLevelHandler;
         private readonly StudioContext _context;
@@ -130,6 +131,45 @@ namespace OOL_API.Controllers
             return await UpdateEntry(input);
         }
 
+        [HttpPost]
+        [Authorize(Roles = AccessLevelInfo.SudoString)]
+        [SwaggerOperation("Updates the entry of the current employee")]
+        [SwaggerResponse(200, "The added entry", typeof(OutputEmployee))]
+        [SwaggerResponse(401, "The employee is not authorize / authenticated")]
+        [SwaggerResponse(404, "Some of the required references were not found")]
+        [SwaggerResponse(409, "The CPF already exists")]
+        public async Task<IActionResult> AddEmployee([FromBody] InputEmployee input)
+        {
+            var existing = await _context.Employees.FindAsync(Misc.StripCpf(input.Cpf));
+
+            var exists = existing != null;
+
+            if (exists)
+            {
+                ModelState.AddModelError(nameof(InputEmployee.Cpf), "CPF já existente");
+
+                return Conflict(ModelState);
+            }
+
+            var occupation = await _context.Occupations.FindAsync(input.OccupationId);
+
+            if (occupation == null)
+            {
+                ModelState.AddModelError(nameof(InputEmployee.OccupationId), "Ocupação não encontrada");
+
+                return NotFound(ModelState);
+            }
+
+            Employee employee = input.ToModel(occupation, _passwordHash);
+
+            await _context.Users.AddAsync(employee.User);
+
+            await _context.Employees.AddAsync(employee);
+
+            return Ok(new OutputEmployee(employee));
+        }
+
+
         [HttpGet]
         [Route("levels")]
         [SwaggerOperation("Lists available access levels")]
@@ -188,7 +228,8 @@ namespace OOL_API.Controllers
             // we ignore password changes if the input 
             // did not request one.
 
-            if (input.Password != null) {
+            if (input.Password != null)
+            {
                 entry.User.Password = updated.User.Password;
             }
 
