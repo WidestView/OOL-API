@@ -55,13 +55,18 @@ namespace OOL_API.Controllers
                 return BadRequest("Invalid quantity");
             }
 
-            var price = input.ImageQuantity * package.PricePerPhoto;
+            var price = CalculatePrice(package, input.ImageQuantity);
 
             Order order = input.ToModel(currentCustomer, package, price);
 
             await _context.Orders.AddAsync(order);
 
             return Ok();
+        }
+
+        private static decimal CalculatePrice(Package package, int inputImageQuantity)
+        {
+            return package.BaseValue + inputImageQuantity * package.PricePerPhoto;
         }
 
         [HttpGet]
@@ -89,11 +94,12 @@ namespace OOL_API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Get(Guid id)
         {
-            if (id == null) return BadRequest();
-
             var order = await _context.Orders.FindAsync(id);
 
-            if (order == null) return NotFound();
+            if (order == null)
+            {
+                return NotFound();
+            }
 
             var result = await _handler.OutputFor(order);
 
