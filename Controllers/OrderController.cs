@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
@@ -12,7 +14,7 @@ namespace OOL_API.Controllers
 #nullable enable
 
     [ApiController]
-    [Route("order")]
+    [Route("api/[controller]")]
     public class OrderController : ControllerBase
     {
         private readonly StudioContext _context;
@@ -79,6 +81,21 @@ namespace OOL_API.Controllers
             var result = await Task.WhenAll(
                 orders.Select(_handler.OutputFor)
             );
+
+            return Ok(result);
+        }
+
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Get(Guid id)
+        {
+            if (id == null) return BadRequest();
+
+            var order = await _context.Orders.FindAsync(id);
+
+            if (order == null) return NotFound();
+
+            var result = await _handler.OutputFor(order);
 
             return Ok(result);
         }

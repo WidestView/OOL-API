@@ -23,34 +23,34 @@ namespace OOL_API.Models.DataTransfer
         [Range(0, double.MaxValue, ErrorMessage = "O valor deve ser positivo")]
         public decimal PricePerPhoto { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "A quantidade de imagens deve ser positiva")]
+        [Range(0, int.MaxValue, ErrorMessage = "A quantidade de imagens deve ser positiva")]
         public int? ImageQuantity { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "O multiplicador de quantidades deve ser positivo")]
+        [Range(0, int.MaxValue, ErrorMessage = "O multiplicador de quantidades deve ser positivo")]
         public int? QuantityMultiplier { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "As iterações máximas devem ser positivas")]
+        [Range(0, int.MaxValue, ErrorMessage = "As iterações máximas devem ser positivas")]
         public int? MaxIterations { get; set; }
 
         public bool Available { get; set; } = true;
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (ImageQuantity != null && (QuantityMultiplier != null || MaxIterations != null))
+            if (!isNullorZero(ImageQuantity) && (!isNullorZero(QuantityMultiplier) || !isNullorZero(MaxIterations)))
             {
                 yield return new ValidationResult(
                     "Se a quantidade de imagens estiver definida, o multiplicador e iterações máximas não podem."
                 );
             }
 
-            if ((QuantityMultiplier == null ? 1 : 0) + (MaxIterations == null ? 1 : 0) == 1)
+            if ((isNullorZero(QuantityMultiplier) ? 1 : 0) + (isNullorZero(MaxIterations) ? 1 : 0) == 1)
             {
                 yield return new ValidationResult(
                     "O multiplicador e iterações máximas devem estar definidos juntos"
                 );
             }
 
-            if (ImageQuantity == null && QuantityMultiplier == null && MaxIterations == null)
+            if (isNullorZero(ImageQuantity) && isNullorZero(QuantityMultiplier) && isNullorZero(MaxIterations))
             {
                 yield return new ValidationResult(
                     "A quantidade do pacote deve ser definida, ou por meio da" +
@@ -58,6 +58,8 @@ namespace OOL_API.Models.DataTransfer
                 );
             }
         }
+
+        private bool isNullorZero(int? value) => (value == null || value == 0);
 
         public Package ToModel()
         {

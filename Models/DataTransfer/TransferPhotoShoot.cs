@@ -8,7 +8,7 @@ namespace OOL_API.Models.DataTransfer
     public class InputPhotoShoot
     {
         [Required(ErrorMessage = "O pedido é obrigatório")]
-        public int OrderId { get; set; }
+        public Guid OrderId { get; set; }
 
         [Required(ErrorMessage = "O endereço é obrigatório")]
         public string Address { get; set; }
@@ -48,7 +48,7 @@ namespace OOL_API.Models.DataTransfer
 
         public Guid Id { get; }
 
-        public int OrderId { get; }
+        public Guid OrderId { get; }
 
         public string Address { get; }
 
