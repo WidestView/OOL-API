@@ -19,7 +19,7 @@ namespace OOL_API.Models.DataTransfer
             All = Package | Customer | Photoshoot
         }
 
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         public OutputPackage Package { get; set; }
 
@@ -63,7 +63,7 @@ namespace OOL_API.Models.DataTransfer
                 Price = order.Price,
                 PurchaseDate = order.BuyTime,
                 CustomerId = order.CustomerId,
-                Photoshoots = order.PhotoShoots?.Select( p => new OutputPhotoShoot(p, true)).ToList()
+                Photoshoots = order.PhotoShoots?.Select(p => new OutputPhotoShoot(p, true)).ToList()
             };
 
             if (flags.HasFlag(OutputOrder.Flags.Package))
@@ -76,7 +76,7 @@ namespace OOL_API.Models.DataTransfer
             if (flags.HasFlag(OutputOrder.Flags.Customer))
             {
                 order.Customer ??= await _context.Customers.Include(c => c.User)
-                                    .FirstOrDefaultAsync(c => c.UserId == order.CustomerId);
+                    .FirstOrDefaultAsync(c => c.UserId == order.CustomerId);
 
                 result.CustomerName = order.Customer.User.SocialName ?? order.Customer.User.Name;
             }
