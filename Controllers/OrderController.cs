@@ -72,6 +72,19 @@ namespace OOL_API.Controllers
         }
 
         [HttpGet]
+        [Route("all")]
+        public async Task<IActionResult> ListAll()
+        {
+            var orders = await _context.Orders.ToListAsync();
+
+            var result = await Task.WhenAll(
+                orders.Select(_handler.OutputFor)
+            );
+
+            return Ok(result);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> List()
         {
             var currentCustomer = await _currentUser.GetCurrentCustomer();
