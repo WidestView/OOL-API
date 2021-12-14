@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
@@ -71,7 +70,6 @@ namespace OOL_API.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = AccessLevelInfo.SudoString)]
         [SwaggerOperation(
             Summary = "Updates the given employee entry",
             Description = "This operation requires high level permissions")
@@ -154,7 +152,6 @@ namespace OOL_API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = AccessLevelInfo.SudoString)]
         [SwaggerOperation("Registers a new employee")]
         [SwaggerResponse(200, "The added entry", typeof(OutputEmployee))]
         [SwaggerResponse(401, "The employee is not authorize / authenticated")]
