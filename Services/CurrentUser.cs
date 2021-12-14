@@ -33,7 +33,23 @@ namespace OOL_API.Services
                 return null;
             }
 
-            return await _context.Users.FindAsync(keyValues: new object[] {username.Value}, token);
+            return await _context.Users.FindAsync(new object[] {username.Value}, token);
+        }
+
+        public async Task<Customer?> GetCurrentCustomer(CancellationToken token = default)
+        {
+            var user = await GetCurrentUser(token);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            var customer = await _context.Customers
+                .Include(e => e.User)
+                .FirstOrDefaultAsync(e => e.UserId == user.Cpf, token);
+
+            return customer;
         }
 
         public async Task<Employee?> GetCurrentEmployee(CancellationToken token = default)

@@ -11,7 +11,7 @@ namespace OOL_API.Models.DataTransfer
 
         public Guid PhotoShootId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "O CPF é obrigatório")]
         public string EmployeeCpf { get; set; }
 
         public int EquipmentId { get; set; }

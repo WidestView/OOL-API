@@ -7,10 +7,10 @@ namespace OOL_API.Models.DataTransfer
 {
     public class InputEquipment
     {
-        [Required]
+        [Required(ErrorMessage = "A disponibilidade é obrigatória")]
         public bool Available { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Os detalhes são obrigatórios")]
         public int DetailsId { get; set; }
 
         public virtual Equipment ToModel()
@@ -27,15 +27,15 @@ namespace OOL_API.Models.DataTransfer
 
     public class InputEquipmentDetails
     {
-        [Required]
-        [MaxLength(255)]
+        [Required(ErrorMessage = "O nome é obrigatório")]
+        [MaxLength(255, ErrorMessage = "O limite é de 255 caracteres")]
         public string Name { get; set; }
 
-        [Required]
-        [Range(minimum: 0, maximum: double.MaxValue)]
+        [Required(ErrorMessage = "O preço é obrigatório")]
+        [Range(0, double.MaxValue, ErrorMessage = "O preço deve ser positivo")]
         public decimal Price { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "O tipo de equipamento é obrigatório")]
         public int TypeId { get; set; }
 
         public EquipmentDetails ToModel()

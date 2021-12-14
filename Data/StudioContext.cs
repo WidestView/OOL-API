@@ -101,18 +101,6 @@ namespace OOL_API.Data
                 .HasForeignKey(order => order.PackageId)
                 .IsRequired();
 
-            builder.Entity<Order>()
-                .HasOne(order => order.Cart)
-                .WithMany()
-                .HasForeignKey(order => order.CartId)
-                .IsRequired();
-
-            builder.Entity<Customer>()
-                .HasOne(customer => customer.Cart)
-                .WithMany()
-                .HasForeignKey(customer => customer.CartId)
-                .IsRequired();
-
             builder.Entity<Customer>()
                 .HasOne(customer => customer.User)
                 .WithOne()

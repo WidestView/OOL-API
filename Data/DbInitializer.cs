@@ -207,8 +207,7 @@ namespace OOL_API.Data
             {
                 new Customer
                 {
-                    UserId = user.Cpf,
-                    CartId = cart.Id
+                    UserId = user.Cpf
                 }
             };
 
@@ -227,8 +226,11 @@ namespace OOL_API.Data
 
             var order = new Order
             {
-                CartId = customer.CartId,
-                PackageId = package.Id
+                PackageId = package.Id,
+                CustomerId = customer.UserId,
+                BuyTime = DateTime.UtcNow,
+                ImageQuantity = 10,
+                Price = 50
             };
 
             await context.Orders.AddAsync(order);

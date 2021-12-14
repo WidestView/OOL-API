@@ -22,8 +22,8 @@ namespace OOL_API.Controllers
         private readonly StudioContext _context;
         private readonly CurrentUserInfo _currentUserInfo;
         private readonly OutputUserHandler _outputHandler;
-        private readonly IPictureStorage<User, string> _pictureStorage;
         private readonly IPasswordHash _passwordHash;
+        private readonly IPictureStorage<User, string> _pictureStorage;
 
         public UserController(
             CurrentUserInfo currentUserInfo,
@@ -78,7 +78,7 @@ namespace OOL_API.Controllers
                 return NotFound();
             }
 
-            return File(content, contentType: "image/jpeg");
+            return File(content, "image/jpeg");
         }
 
         [HttpPost]
@@ -86,16 +86,26 @@ namespace OOL_API.Controllers
         [SwaggerOperation("Registers a new user")]
         [SwaggerResponse(200, "The created User", typeof(OutputUser))]
         [SwaggerResponse(409, "Somethig went wrong on creating user")]
-
-        public async Task<IActionResult> PostUser(InputUser inputUser, [FromServices] IOptions<ApiBehaviorOptions> apiBehaviorOptions)
+        public async Task<IActionResult> PostUser(InputUser inputUser,
+            [FromServices] IOptions<ApiBehaviorOptions> apiBehaviorOptions)
         {
             inputUser.HashPassword(_passwordHash);
             var user = inputUser.ToModel();
 
-            if (await CpfExists(user.Cpf)) ModelState.AddModelError(nameof(user.Cpf), "User Cpf already in use");
-            if (await EmailExists(user.Email)) ModelState.AddModelError(nameof(user.Email), "User Email already in use");
+            if (await CpfExists(user.Cpf))
+            {
+                ModelState.AddModelError(nameof(user.Cpf), "User Cpf already in use");
+            }
 
-            if (!ModelState.IsValid) return apiBehaviorOptions.Value.InvalidModelStateResponseFactory(ControllerContext);
+            if (await EmailExists(user.Email))
+            {
+                ModelState.AddModelError(nameof(user.Email), "User Email already in use");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return apiBehaviorOptions.Value.InvalidModelStateResponseFactory(ControllerContext);
+            }
 
             await _context.Users.AddAsync(user);
 
@@ -124,7 +134,7 @@ namespace OOL_API.Controllers
 
             await _pictureStorage.PostPicture(stream, user);
 
-            return CreatedAtAction(actionName: "GetPicture", value: "");
+            return CreatedAtAction("GetPicture", "");
         }
 
         [AcceptVerbs("GET", "POST")]
@@ -146,14 +156,23 @@ namespace OOL_API.Controllers
         {
             if (await CpfExists(cpf))
             {
-                var result = $"Cpf {cpf} is already in use.";
+                var result = $"O CPF {cpf} já está em uso";
+
                 return Conflict(result);
             }
 
             return Ok(true);
         }
 
-        private async Task<bool> CpfExists(string cpf) => (await _context.Users.FirstOrDefaultAsync(user => user.Cpf == cpf.Replace(".", "").Replace("-", ""))) != null;
-        private async Task<bool> EmailExists(string email) => (await _context.Users.FirstOrDefaultAsync(user => user.Email == email)) != null;
+        private async Task<bool> CpfExists(string cpf)
+        {
+            return await _context.Users.FirstOrDefaultAsync(user =>
+                user.Cpf == cpf.Replace(".", "").Replace("-", "")) != null;
+        }
+
+        private async Task<bool> EmailExists(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(user => user.Email == email) != null;
+        }
     }
 }
