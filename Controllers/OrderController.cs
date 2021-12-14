@@ -12,7 +12,7 @@ namespace OOL_API.Controllers
 #nullable enable
 
     [ApiController]
-    [Route("order")]
+    [Route("api/[controller]")]
     public class OrderController : ControllerBase
     {
         private readonly StudioContext _context;
