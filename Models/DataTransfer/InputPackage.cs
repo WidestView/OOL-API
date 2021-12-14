@@ -23,40 +23,42 @@ namespace OOL_API.Models.DataTransfer
         [Range(0, double.MaxValue)]
         public decimal PricePerPhoto { get; set; }
 
-        [Range(1, int.MaxValue)]
+        [Range(0, int.MaxValue)]
         public int? ImageQuantity { get; set; }
 
-        [Range(1, int.MaxValue)]
+        [Range(0, int.MaxValue)]
         public int? QuantityMultiplier { get; set; }
 
-        [Range(1, int.MaxValue)]
+        [Range(0, int.MaxValue)]
         public int? MaxIterations { get; set; }
 
         public bool Available { get; set; } = true;
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (ImageQuantity != null && (QuantityMultiplier != null || MaxIterations != null))
+            if (!isNullorZero(ImageQuantity) && (!isNullorZero(QuantityMultiplier) || !isNullorZero(MaxIterations)))
             {
                 yield return new ValidationResult(
                     "If the image quantity is set, the quantity multiplier and max iterations must not be set"
                 );
             }
 
-            if ((QuantityMultiplier == null ? 1 : 0) + (MaxIterations == null ? 1 : 0) == 1)
+            if ((isNullorZero(QuantityMultiplier) ? 1 : 0) + (isNullorZero(MaxIterations) ? 1 : 0) == 1)
             {
                 yield return new ValidationResult(
                     "The quantity multiplier and max iterations must be set together"
                 );
             }
 
-            if (ImageQuantity == null && QuantityMultiplier == null && MaxIterations == null)
+            if (isNullorZero(ImageQuantity) && isNullorZero(QuantityMultiplier) && isNullorZero(MaxIterations))
             {
                 yield return new ValidationResult(
                     "The package quantity must be set, " +
                     "either through image quantity or quantity multiplier + max iterations");
             }
         }
+
+        private bool isNullorZero(int? value) => (value == null || value == 0);
 
         public Package ToModel()
         {
