@@ -33,7 +33,7 @@ namespace OOL_API.Controllers
         [SwaggerResponse(200, "The available packages", typeof(IEnumerable<Package>))]
         public async Task<IActionResult> GetProducts()
         {
-            var result = await _context.Packages.ToListAsync();
+            var result = await _context.Packages.Where(row => !row.IsArchived).ToListAsync();
 
             return Ok(result.Select(row => _packageHandler.OutputFor(row)));
         }
@@ -94,7 +94,10 @@ namespace OOL_API.Controllers
         {
             var currentPackage = await _context.Packages.FindAsync(id);
 
-            if (currentPackage == null) return NotFound();
+            if (currentPackage == null)
+            {
+                return NotFound();
+            }
 
             var newPackage = input.ToModel();
 
@@ -111,6 +114,21 @@ namespace OOL_API.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(_packageHandler.OutputFor(currentPackage));
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> Archive(int id)
+        {
+            var package = await _context.Packages.FindAsync(id);
+
+            if (package != null)
+            {
+                package.IsArchived = true;
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok();
         }
     }
 }
