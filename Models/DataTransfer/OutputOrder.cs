@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 
 namespace OOL_API.Models.DataTransfer
@@ -13,10 +15,11 @@ namespace OOL_API.Models.DataTransfer
             None = 0,
             Package = 1 << 0,
             Customer = 1 << 1,
-            All = Package | Customer
+            Photoshoot = 1 << 2,
+            All = Package | Customer | Photoshoot
         }
 
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public OutputPackage Package { get; set; }
 
@@ -26,10 +29,11 @@ namespace OOL_API.Models.DataTransfer
 
         public DateTime PurchaseDate { get; set; }
 
-        // todo: OutputCustomer here 0-0
         public string CustomerId { get; set; }
 
         public string CustomerName { get; set; }
+
+        public IEnumerable<OutputPhotoShoot> Photoshoots { get; set; }
 
         public bool Delivered { get; set; }
     }
@@ -58,7 +62,8 @@ namespace OOL_API.Models.DataTransfer
                 ImageQuantity = order.ImageQuantity,
                 Price = order.Price,
                 PurchaseDate = order.BuyTime,
-                CustomerId = order.CustomerId
+                CustomerId = order.CustomerId,
+                Photoshoots = order.PhotoShoots?.Select( p => new OutputPhotoShoot(p, true)).ToList()
             };
 
             if (flags.HasFlag(OutputOrder.Flags.Package))
@@ -70,12 +75,22 @@ namespace OOL_API.Models.DataTransfer
 
             if (flags.HasFlag(OutputOrder.Flags.Customer))
             {
-                order.Customer ??= await _context.Customers.FindAsync();
+                order.Customer ??= await _context.Customers.Include(c => c.User)
+                                    .FirstOrDefaultAsync(c => c.UserId == order.CustomerId);
 
                 result.CustomerName = order.Customer.User.SocialName ?? order.Customer.User.Name;
             }
 
-            result.Delivered = _context.PhotoShoots.Where(p => p.OrderId == order.Id)
+            var photoshootsQuery = _context.PhotoShoots.AsQueryable().Where(p => p.OrderId == order.Id);
+
+            if (flags.HasFlag(OutputOrder.Flags.Photoshoot))
+            {
+                order.PhotoShoots ??= await photoshootsQuery.Include(p => p.Images).ToListAsync();
+
+                result.Photoshoots = order.PhotoShoots.Select(p => new OutputPhotoShoot(p, true)).ToList();
+            }
+
+            result.Delivered = photoshootsQuery
                 .Any(
                     photoshoot => _context.PhotoShootImages.Any(image => image.PhotoShootId == photoshoot.Id)
                 );
