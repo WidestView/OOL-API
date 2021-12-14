@@ -131,9 +131,31 @@ namespace OOL_API.Controllers
             return await UpdateEntry(input);
         }
 
+        [HttpGet]
+        [Route("{id}")]
+        [SwaggerOperation("Fetches the employee with the given id")]
+        [SwaggerResponse(200, "The entry", typeof(OutputEmployee))]
+        [SwaggerResponse(404, "No employee with the given ID was found")]
+        public async Task<IActionResult> GetEmployee(string id)
+        {
+            var cpf = Misc.StripCpf(id);
+
+            var result = await _context.Employees
+                .Include(row => row.User)
+                .Include(row => row.Occupation)
+                .FirstOrDefaultAsync(row => row.UserId == cpf);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new OutputEmployee(result));
+        }
+
         [HttpPost]
         [Authorize(Roles = AccessLevelInfo.SudoString)]
-        [SwaggerOperation("Updates the entry of the current employee")]
+        [SwaggerOperation("Registers a new employee")]
         [SwaggerResponse(200, "The added entry", typeof(OutputEmployee))]
         [SwaggerResponse(401, "The employee is not authorize / authenticated")]
         [SwaggerResponse(404, "Some of the required references were not found")]
