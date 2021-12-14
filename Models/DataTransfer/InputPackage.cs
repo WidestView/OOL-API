@@ -23,13 +23,13 @@ namespace OOL_API.Models.DataTransfer
         [Range(0, double.MaxValue, ErrorMessage = "O valor deve ser positivo")]
         public decimal PricePerPhoto { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "A quantidade de imagens deve ser positiva")]
+        [Range(0, int.MaxValue, ErrorMessage = "A quantidade de imagens deve ser positiva")]
         public int? ImageQuantity { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "O multiplicador de quantidades deve ser positivo")]
+        [Range(0, int.MaxValue, ErrorMessage = "O multiplicador de quantidades deve ser positivo")]
         public int? QuantityMultiplier { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "As iterações máximas devem ser positivas")]
+        [Range(0, int.MaxValue, ErrorMessage = "As iterações máximas devem ser positivas")]
         public int? MaxIterations { get; set; }
 
         public bool Available { get; set; } = true;
