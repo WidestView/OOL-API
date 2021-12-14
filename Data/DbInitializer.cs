@@ -60,8 +60,10 @@ namespace OOL_API.Data
             var employee = await context.Employees.OrderBy(row => row.UserId).FirstAsync();
 
             var equipment = await context.Equipments.OrderBy(row => row.Id).FirstAsync();
+            var equipment2 = await context.Equipments.OrderBy(row => row.Id).Skip(1).FirstAsync();
 
             var photoshoot = await context.PhotoShoots.OrderBy(row => row.Id).FirstAsync();
+            var photoshoot2 = await context.PhotoShoots.OrderBy(row => row.Id).Skip(1).FirstAsync();
 
             var withdraw = new EquipmentWithdraw
             {
@@ -76,7 +78,23 @@ namespace OOL_API.Data
                 PhotoShoot = photoshoot
             };
 
+            var date = DateTime.UtcNow + TimeSpan.FromDays(2);
+
+            var withdraw2 = new EquipmentWithdraw
+            {
+                WithdrawDate = date,
+                ExpectedDevolutionDate = date + TimeSpan.FromHours(5),
+                EffectiveDevolutionDate = date + TimeSpan.FromHours(3),
+                Employee = employee,
+                EmployeeCpf = employee.UserId,
+                Equipment = equipment2,
+                EquipmentId = equipment2.Id,
+                PhotoShootId = photoshoot2.Id,
+                PhotoShoot = photoshoot2
+            };
+
             await context.EquipmentWithdraws.AddAsync(withdraw);
+            await context.EquipmentWithdraws.AddAsync(withdraw2);
 
             await context.SaveChangesAsync();
         }
@@ -89,8 +107,8 @@ namespace OOL_API.Data
                 {
                     Name = "Premium",
                     Description =
-                        "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
-                    BaseValue = 50.00m,
+                        "Pacote com um ensaio fotográfico de grande flexibilidade",
+                    BaseValue = 70.00m,
                     PricePerPhoto = 2.50m,
                     ImageQuantity = null,
                     QuantityMultiplier = 25,
@@ -101,13 +119,25 @@ namespace OOL_API.Data
                 {
                     Name = "Você Modelo!",
                     Description =
-                        "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
-                    BaseValue = 200.0m,
-                    PricePerPhoto = 0.00m,
-                    ImageQuantity = 200,
+                        "Pacote onde você é a estrela da vez",
+                    BaseValue = 100.0m,
+                    PricePerPhoto = 5.00m,
+                    ImageQuantity = 15,
                     QuantityMultiplier = null,
                     MaxIterations = null,
                     Available = true
+                },
+                new Package
+                {
+                    Name = "Casamento Fiel",
+                    Description =
+                        "Todas as fotos para seu casamento",
+                    BaseValue = 150.0m,
+                    PricePerPhoto = 10.00m,
+                    ImageQuantity = null,
+                    QuantityMultiplier = 10,
+                    MaxIterations = 5,
+                    Available = false
                 }
             };
 
@@ -129,9 +159,9 @@ namespace OOL_API.Data
                     BirthDate = DateTime.UtcNow - TimeSpan.FromDays(6570),
                     Cpf = _settings.DefaultUserCpf,
                     Email = _settings.DefaultUserEmail,
-                    Name = "bob",
+                    Name = "Giovanni Sunner",
                     Password = _hash.Of(_settings.DefaultUserPassword),
-                    Phone = "40028922",
+                    Phone = "11940028922",
                     SocialName = null
                 },
                 new User
@@ -140,10 +170,10 @@ namespace OOL_API.Data
                     BirthDate = DateTime.UtcNow - TimeSpan.FromDays(14600),
                     Cpf = _settings.SuperUserCpf,
                     Email = _settings.SuperUserEmail,
-                    Name = "super bob",
+                    Name = "Silva Gunther",
                     Password = _hash.Of(_settings.SuperUserPassword),
-                    Phone = "0101010101",
-                    SocialName = "root sudoer"
+                    Phone = "11910101010",
+                    SocialName = "Gilva Sunther"
                 }
             };
 
@@ -159,8 +189,8 @@ namespace OOL_API.Data
         {
             var occupation = new Occupation
             {
-                Description = "Idk",
-                Name = "Sleep"
+                Description = "Um fotógrafo profissional no mercado",
+                Name = "Fotógrafo Regular"
             };
 
             await context.Occupations.AddAsync(occupation);
@@ -171,15 +201,15 @@ namespace OOL_API.Data
                 new Employee
                 {
                     AccessLevel = AccessLevel.Default,
-                    Gender = "male",
+                    Gender = "Masculino",
                     Rg = "102010102010",
                     OccupationId = occupation.Id
                 },
                 new Employee
                 {
                     AccessLevel = AccessLevel.Sudo,
-                    Gender = "male",
-                    Rg = "102010102010",
+                    Gender = "Masculino",
+                    Rg = "332330303010",
                     OccupationId = occupation.Id
                 }
             };
@@ -223,6 +253,7 @@ namespace OOL_API.Data
         {
             var customer = await context.Customers.OrderBy(row => row.UserId).FirstAsync();
             var package = await context.Packages.OrderBy(row => row.Id).FirstAsync();
+            var package2 = await context.Packages.OrderBy(row => row.Id).Skip(1).FirstAsync();
 
             var order = new Order
             {
@@ -233,7 +264,17 @@ namespace OOL_API.Data
                 Price = 50
             };
 
+            var order2 = new Order
+            {
+                PackageId = package2.Id,
+                CustomerId = customer.UserId,
+                BuyTime = DateTime.UtcNow,
+                ImageQuantity = 10,
+                Price = 50
+            };
+
             await context.Orders.AddAsync(order);
+            await context.Orders.AddAsync(order2);
             await context.SaveChangesAsync();
         }
 
@@ -247,7 +288,7 @@ namespace OOL_API.Data
             {
                 new PhotoShoot
                 {
-                    Address = "localhost Avenue",
+                    Address = "Avenida Localhost",
                     Duration = TimeSpan.FromHours(1),
                     Start = DateTime.UtcNow + TimeSpan.FromHours(2),
                     OrderId = order.Id,
@@ -256,7 +297,7 @@ namespace OOL_API.Data
 
                 new PhotoShoot
                 {
-                    Address = "127001 Street",
+                    Address = "Rua 127.0.0.1",
                     Duration = TimeSpan.FromHours(1),
                     Start = DateTime.UtcNow - TimeSpan.FromHours(1),
                     OrderId = order.Id,
@@ -265,7 +306,7 @@ namespace OOL_API.Data
 
                 new PhotoShoot
                 {
-                    Address = "0.0.0.0 City",
+                    Address = "Condomínio 0.0.0.0",
                     Duration = TimeSpan.FromHours(1),
                     Start = DateTime.UtcNow + TimeSpan.FromDays(7),
                     OrderId = order.Id,
@@ -274,7 +315,7 @@ namespace OOL_API.Data
 
                 new PhotoShoot
                 {
-                    Address = "::1 Town",
+                    Address = "Vila ::1",
                     Duration = TimeSpan.FromHours(1),
                     Start = DateTime.UtcNow + TimeSpan.FromDays(3),
                     OrderId = order.Id,
@@ -296,14 +337,14 @@ namespace OOL_API.Data
             {
                 new EquipmentType
                 {
-                    Name = "Good Camera",
-                    Description = "A high quality camera"
+                    Name = "Camera boa",
+                    Description = "Uma câmera de alta qualidade"
                 },
 
                 new EquipmentType
                 {
-                    Name = "Better Camera",
-                    Description = "A higher quality camera"
+                    Name = "Armazenamento",
+                    Description = "Uma item de armazenamento"
                 }
             };
 
@@ -314,18 +355,28 @@ namespace OOL_API.Data
 
             await context.SaveChangesAsync();
 
-            var type = types.OrderBy(row => row.Id).First();
+            var camera = types.OrderBy(row => row.Id).First();
+            var storage = types.OrderBy(row => row.Id).Skip(1).First();
 
             var details = new EquipmentDetails
             {
-                Name = "Kodak Camera 0xIDK",
+                Name = "Camera Kodak 0xIDK",
                 Price = 400.00m,
-                TypeId = type.Id
+                TypeId = camera.Id
             };
 
-            await context.SaveChangesAsync();
+            var details2 = new EquipmentDetails
+            {
+                Name = "HDD 1TB",
+                Price = 280.00m,
+                TypeId = storage.Id
+            };
+
 
             await context.EquipmentDetails.AddAsync(details);
+            await context.EquipmentDetails.AddAsync(details2);
+
+            await context.SaveChangesAsync();
 
             var equipments = new[]
             {
@@ -334,6 +385,13 @@ namespace OOL_API.Data
                     Available = true,
                     Details = details,
                     DetailsId = details.Id
+                },
+
+                new Equipment
+                {
+                    Available = false,
+                    Details = details2,
+                    DetailsId = details2.Id
                 }
             };
 
