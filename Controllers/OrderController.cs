@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -87,7 +86,7 @@ namespace OOL_API.Controllers
         [HttpGet]
         public async Task<IActionResult> List()
         {
-            var currentCustomer = await _currentUser.GetCurrentCustomer();
+            var currentCustomer = await _currentUser.GetCurrentUser();
 
             if (currentCustomer == null)
             {
@@ -95,7 +94,7 @@ namespace OOL_API.Controllers
             }
 
             var orders = await _context.Orders.Where(
-                order => order.CustomerId == currentCustomer.UserId
+                order => order.CustomerId == currentCustomer.Cpf
             ).ToListAsync();
 
             var result = await Task.WhenAll(
