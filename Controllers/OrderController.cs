@@ -107,7 +107,7 @@ namespace OOL_API.Controllers
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<IActionResult> Get(Guid id)
+        public async Task<IActionResult> Get(int id)
         {
             var order = await _context.Orders.FindAsync(id);
 
