@@ -20,7 +20,7 @@ namespace OOL_API.Models
 
         public string CustomerId { get; set; }
 
-        public Customer Customer { get; set; }
+        public User Customer { get; set; }
 
         public List<PhotoShoot> PhotoShoots { get; set; }
     }

@@ -39,7 +39,7 @@ namespace OOL_API.Models.DataTransfer
             OrderId = photoShoot.OrderId;
             Address = photoShoot.Address;
             Start = photoShoot.Start;
-            DurationMinutes = (uint) photoShoot.Duration.Minutes;
+            DurationMinutes = (uint) photoShoot.Duration.TotalMinutes;
 
             Images = withReferences && photoShoot.Images != null
                 ? photoShoot.Images.Select(image => new OutputPhotoShootImage(image, false))

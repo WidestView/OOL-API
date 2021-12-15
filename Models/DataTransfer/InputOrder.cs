@@ -11,13 +11,13 @@ namespace OOL_API.Models.DataTransfer
         [Required(ErrorMessage = "A quantidade é obrigatória")]
         public int ImageQuantity { get; set; }
 
-        public Order ToModel(Customer customer, Package package, decimal price)
+        public Order ToModel(User user, Package package, decimal price)
         {
             return new Order
             {
                 BuyTime = DateTime.UtcNow,
-                Customer = customer,
-                CustomerId = customer.UserId,
+                Customer = user,
+                CustomerId = user.Cpf,
                 ImageQuantity = ImageQuantity,
                 Package = package,
                 PackageId = package.Id,

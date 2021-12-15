@@ -75,10 +75,10 @@ namespace OOL_API.Models.DataTransfer
 
             if (flags.HasFlag(OutputOrder.Flags.Customer))
             {
-                order.Customer ??= await _context.Customers.Include(c => c.User)
-                    .FirstOrDefaultAsync(c => c.UserId == order.CustomerId);
+                order.Customer ??= await _context.Users
+                    .FirstOrDefaultAsync(c => c.Cpf == order.CustomerId);
 
-                result.CustomerName = order.Customer.User.SocialName ?? order.Customer.User.Name;
+                result.CustomerName = order.Customer.SocialName ?? order.Customer.Name;
             }
 
             var photoshootsQuery = _context.PhotoShoots.AsQueryable().Where(p => p.OrderId == order.Id);

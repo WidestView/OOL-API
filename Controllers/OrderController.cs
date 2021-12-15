@@ -36,7 +36,7 @@ namespace OOL_API.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] InputOrder input)
         {
-            var currentCustomer = await _currentUser.GetCurrentCustomer();
+            var currentCustomer = await _currentUser.GetCurrentUser();
 
             if (currentCustomer == null)
             {
