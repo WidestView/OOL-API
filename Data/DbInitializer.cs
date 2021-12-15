@@ -67,9 +67,9 @@ namespace OOL_API.Data
 
             var withdraw = new EquipmentWithdraw
             {
-                WithdrawDate = DateTime.UtcNow,
-                ExpectedDevolutionDate = DateTime.UtcNow + TimeSpan.FromHours(5),
-                EffectiveDevolutionDate = DateTime.UtcNow + TimeSpan.FromHours(3),
+                WithdrawDate = DateTime.Now,
+                ExpectedDevolutionDate = DateTime.Now + TimeSpan.FromHours(5),
+                EffectiveDevolutionDate = DateTime.Now + TimeSpan.FromHours(3),
                 Employee = employee,
                 EmployeeCpf = employee.UserId,
                 Equipment = equipment,
@@ -78,7 +78,7 @@ namespace OOL_API.Data
                 PhotoShoot = photoshoot
             };
 
-            var date = DateTime.UtcNow + TimeSpan.FromDays(2);
+            var date = DateTime.Now + TimeSpan.FromDays(2);
 
             var withdraw2 = new EquipmentWithdraw
             {
@@ -156,7 +156,7 @@ namespace OOL_API.Data
                 new User
                 {
                     Active = true,
-                    BirthDate = DateTime.UtcNow - TimeSpan.FromDays(6570),
+                    BirthDate = DateTime.Now - TimeSpan.FromDays(6570),
                     Cpf = _settings.DefaultUserCpf,
                     Email = _settings.DefaultUserEmail,
                     Name = "Giovanni Sunner",
@@ -167,7 +167,7 @@ namespace OOL_API.Data
                 new User
                 {
                     Active = true,
-                    BirthDate = DateTime.UtcNow - TimeSpan.FromDays(14600),
+                    BirthDate = DateTime.Now - TimeSpan.FromDays(14600),
                     Cpf = _settings.SuperUserCpf,
                     Email = _settings.SuperUserEmail,
                     Name = "Silva Gunther",
@@ -193,7 +193,14 @@ namespace OOL_API.Data
                 Name = "Fotógrafo Regular"
             };
 
+            var occupation2 = new Occupation
+            {
+                Description = "Um funcionário dedicado à segurança do estabelecimento",
+                Name = "Segurança Regular"
+            };
+
             await context.Occupations.AddAsync(occupation);
+            await context.Occupations.AddAsync(occupation2);
             await context.SaveChangesAsync();
 
             var employees = new[]
@@ -259,7 +266,7 @@ namespace OOL_API.Data
             {
                 PackageId = package.Id,
                 CustomerId = customer.UserId,
-                BuyTime = DateTime.UtcNow,
+                BuyTime = DateTime.Now,
                 ImageQuantity = 10,
                 Price = 50
             };
@@ -268,7 +275,7 @@ namespace OOL_API.Data
             {
                 PackageId = package2.Id,
                 CustomerId = customer.UserId,
-                BuyTime = DateTime.UtcNow,
+                BuyTime = DateTime.Now,
                 ImageQuantity = 10,
                 Price = 50
             };
@@ -290,7 +297,7 @@ namespace OOL_API.Data
                 {
                     Address = "Avenida Localhost",
                     Duration = TimeSpan.FromHours(1),
-                    Start = DateTime.UtcNow + TimeSpan.FromHours(2),
+                    Start = DateTime.Now + TimeSpan.FromHours(2),
                     OrderId = order.Id,
                     Employees = new List<Employee> {employee}
                 },
@@ -299,7 +306,16 @@ namespace OOL_API.Data
                 {
                     Address = "Rua 127.0.0.1",
                     Duration = TimeSpan.FromHours(1),
-                    Start = DateTime.UtcNow - TimeSpan.FromHours(1),
+                    Start = DateTime.Now - TimeSpan.FromHours(1),
+                    OrderId = order.Id,
+                    Employees = new List<Employee> {employee}
+                },
+
+                new PhotoShoot
+                {
+                    Address = "Rua Ruanda",
+                    Duration = TimeSpan.FromHours(1),
+                    Start = DateTime.Now - TimeSpan.FromMinutes(30),
                     OrderId = order.Id,
                     Employees = new List<Employee> {employee}
                 },
@@ -308,7 +324,7 @@ namespace OOL_API.Data
                 {
                     Address = "Condomínio 0.0.0.0",
                     Duration = TimeSpan.FromHours(1),
-                    Start = DateTime.UtcNow + TimeSpan.FromDays(7),
+                    Start = DateTime.Now + TimeSpan.FromDays(7),
                     OrderId = order.Id,
                     Employees = new List<Employee> {employee}
                 },
@@ -317,7 +333,7 @@ namespace OOL_API.Data
                 {
                     Address = "Vila ::1",
                     Duration = TimeSpan.FromHours(1),
-                    Start = DateTime.UtcNow + TimeSpan.FromDays(3),
+                    Start = DateTime.Now + TimeSpan.FromDays(3),
                     OrderId = order.Id,
                     Employees = new List<Employee> {employee}
                 }
