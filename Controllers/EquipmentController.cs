@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
-using OOL_API.Models;
 using OOL_API.Models.DataTransfer;
 
 namespace OOL_API.Controllers
@@ -14,121 +15,143 @@ namespace OOL_API.Controllers
     {
         private readonly StudioContext _context;
 
+        private readonly OutputEquipmentHandler _equipmentHandler;
+
         public EquipmentController(StudioContext context)
         {
             _context = context;
+
+            var detailsHandler = new OutputEquipmentDetailsHandler(context);
+            var equipmentHandler = new OutputEquipmentHandler(context);
+
+            detailsHandler.EquipmentHandler = equipmentHandler;
+            equipmentHandler.DetailsHandler = detailsHandler;
+
+            _equipmentHandler = equipmentHandler;
         }
 
         [HttpGet]
-        [Route("details")]
-        public IEnumerable<OutputEquipmentDetails> ListDetails()
+        public async Task<IEnumerable<OutputEquipment>> ListEquipments(CancellationToken token = default)
         {
-            var result = _context.EquipmentDetails
-                .Include(row => row.Type)
-                .ToList();
+            var result = await _context.Equipments
+                .Where(equipment => !equipment.IsArchived)
+                .ToListAsync(token);
 
+            foreach (var row in result)
+            {
+                await _context.Entry(row)
+                    .Reference(item => item.Details)
+                    .LoadAsync(token);
 
-            return result.Select(
-                row => new OutputEquipmentDetails(row, true)
+                await _context.Entry(row.Details)
+                    .Reference(item => item.Type)
+                    .LoadAsync(token);
+            }
+
+            return await Task.WhenAll(
+                result.Select(async row => await _equipmentHandler.OutputFor(row, token))
             );
         }
 
-        [HttpGet]
-        [Route("details/{id}")]
-        public IActionResult GetDetails(int id)
-        {
-            var result = _context.EquipmentDetails.Find(id);
-
-            if (result == null) return NotFound();
-
-            _context.Entry(result).Collection(
-                details => details.Equipments
-            ).Load();
-
-            _context.Entry(result).Reference(
-                details => details.Type
-            ).Load();
-
-            return Ok(new OutputEquipmentDetails(result, true));
-        }
-
-        [HttpGet]
-        public IEnumerable<OutputEquipment> ListEquipments()
-        {
-            var result = _context.Equipments
-                .Include(row => row.Details)
-                .Select(
-                    row => new OutputEquipment(row, true)
-                ).ToList();
-
-            return result;
-        }
-
         [HttpPost]
-        [Route("add-details")]
-        public IActionResult AddEquipmentDetails(InputEquipmentDetails input)
+        public async Task<IActionResult> AddEquipment(InputEquipment input)
         {
-            if (!ModelState.IsValid) return new BadRequestObjectResult(input);
+            var details = await _context.EquipmentDetails.FindAsync(input.DetailsId);
 
-            var type = _context.EquipmentTypes.Find(input.TypeId);
-
-            if (type == null) return NotFound();
-
-            var details = input.ToModel();
-
-            _context.EquipmentDetails.Add(details);
-
-            _context.SaveChanges();
-
-            return CreatedAtAction(
-                nameof(GetDetails),
-                new {id = details.Id},
-                new OutputEquipmentDetails(details, true));
-        }
-
-        [HttpPost]
-        [Route("add")]
-        public IActionResult AddEquipment(InputEquipment input)
-        {
-            if (!ModelState.IsValid) return new BadRequestObjectResult(input);
-
-            var details = _context.EquipmentDetails.Find(input.DetailsId);
-
-            if (details == null) return NotFound();
+            if (details == null)
+            {
+                return NotFound();
+            }
 
             var equipment = input.ToModel();
             equipment.Details = details;
 
-            _context.Equipments.Add(equipment);
+            await _context.Equipments.AddAsync(equipment);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return Ok(new OutputEquipment(equipment, true));
+            return Ok(_equipmentHandler.OutputFor(equipment));
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public async Task<IActionResult> UpdateEquipment(int id, [FromBody] InputEquipment input)
+        {
+            var current = await _context.Equipments.FindAsync(id);
+
+            if (current == null)
+            {
+                return NotFound();
+            }
+
+            var updated = input.ToModel();
+
+            current.Available = updated.Available;
+            current.DetailsId = updated.DetailsId;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(await _equipmentHandler.OutputFor(current));
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<IActionResult> GetEquipmentById(int id, CancellationToken token)
+        {
+            var equipment = await _context.Equipments.FindAsync(id);
+
+            if (equipment == null)
+            {
+                return NotFound();
+            }
+
+            await _context.Entry(equipment)
+                .Reference(item => item.Details)
+                .LoadAsync(token);
+
+            await _context.Entry(equipment.Details)
+                .Reference(item => item.Type)
+                .LoadAsync(token);
+
+            return Ok(await _equipmentHandler.OutputFor(equipment, token));
         }
 
         [HttpGet]
         [Route("types")]
-        public IEnumerable<OutputEquipmentType> ListEquipmentTypes()
+        public async Task<IEnumerable<OutputEquipmentType>> ListEquipmentTypes(CancellationToken token = default)
         {
-            return _context.EquipmentTypes.Select(type => new OutputEquipmentType(type));
+            return await _context.EquipmentTypes
+                .Where(type => !type.IsArchived)
+                .Select(type => new OutputEquipmentType(type))
+                .ToListAsync(token);
         }
 
         [HttpPost]
-        [Route("add-type")]
-        public IActionResult AddEquipmentType(InputEquipmentType input)
+        [Route("types")]
+        public async Task<IActionResult> AddEquipmentType(InputEquipmentType input)
         {
-            if (!ModelState.IsValid)
-            {
-                return new BadRequestObjectResult(input);
-            }
+            var type = input.ToModel();
 
-            EquipmentType type = input.ToModel();
+            await _context.EquipmentTypes.AddAsync(type);
 
-            _context.EquipmentTypes.Add(type);
-
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return Ok(new OutputEquipmentType(type));
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> Archive(int id)
+        {
+            var entry = await _context.Equipments.FindAsync(id);
+
+            if (entry != null)
+            {
+                entry.IsArchived = true;
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok();
         }
     }
 }

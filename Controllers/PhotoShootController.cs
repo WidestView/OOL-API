@@ -1,16 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OOL_API.Data;
 using OOL_API.Models.DataTransfer;
 using OOL_API.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OOL_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PhotoShootController : Controller
+    public class PhotoShootController : ControllerBase
     {
         private readonly StudioContext _context;
 
@@ -23,58 +27,109 @@ namespace OOL_API.Controllers
 
 
         [HttpGet]
-        public IActionResult ListAll()
+        [SwaggerOperation("Lists all available photoshoots")]
+        [SwaggerResponse(200, "The available photoshoots", typeof(IEnumerable<OutputPhotoShoot>))]
+        public async Task<IActionResult> ListAll()
         {
-            return Json(
-                _context.PhotoShoots.Select(shoot => new OutputPhotoShoot(shoot, false))
+            return Ok(
+                await _context.PhotoShoots
+                    .Include(shoot => shoot.Images)
+                    .Select(shoot => new OutputPhotoShoot(shoot, true))
+                    .ToListAsync()
             );
         }
 
         [HttpGet]
         [Route("current")]
-        public IActionResult ListCurrentPhotoshoots()
+        [SwaggerOperation("Lists all the photoshoots assigned to the current employee")]
+        [SwaggerResponse(200, "The assigned photoshoots", typeof(IEnumerable<OutputPhotoShoot>))]
+        [SwaggerResponse(401, "The employee is not authenticated", typeof(IEnumerable<OutputPhotoShoot>))]
+        public async Task<IActionResult> ListCurrentPhotoshoots()
         {
-            var employee = _currentUser.GetCurrentEmployee();
+            var employee = await _currentUser.GetCurrentEmployee();
 
-            if (employee == null) return Unauthorized();
+            if (employee == null)
+            {
+                return Unauthorized();
+            }
 
-            var shoots = _context.PhotoShoots.Where(
-                shoot => shoot.Employees.Any(e => e.UserId == employee.UserId));
+            var shoots = await _context.PhotoShoots
+                .Include(shot => shot.Images)
+                .Where(
+                    shoot => shoot.Employees.Any(e => e.UserId == employee.UserId))
+                .ToListAsync();
 
-            return Ok(shoots.Select(s => new OutputPhotoShoot(s, false)));
+            return Ok(shoots.Select(s => new OutputPhotoShoot(s, true)));
         }
 
 
         [HttpGet("{id}")]
-        public IActionResult GetById(Guid id)
+        [AllowAnonymous]
+        [SwaggerOperation("Gets a photoshoot by its ID")]
+        [SwaggerResponse(200, "The photoshoot", typeof(OutputPhotoShoot))]
+        [SwaggerResponse(404, "No photoshoot was found with the given ID")]
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var result = _context
+            var result = await _context
                 .PhotoShoots
                 .Include(shot => shot.Images)
-                .FirstOrDefault(shoot => shoot.ResourceId == id);
+                .FirstOrDefaultAsync(shoot => shoot.ResourceId == id);
 
-            if (result == null) return NotFound();
+            if (result == null)
+            {
+                return NotFound();
+            }
 
-            return Json(new OutputPhotoShoot(result, true));
+            return Ok(new OutputPhotoShoot(result, true));
         }
 
         [HttpPost("add")]
-        public IActionResult Add([FromBody] InputPhotoShoot input)
+        [SwaggerOperation("Inserts a photoshoot")]
+        [SwaggerResponse(404, "Some of the required references were not found")]
+        [SwaggerResponse(200, "The photoshoot entry")]
+        public async Task<IActionResult> Add([FromBody] InputPhotoShoot input)
         {
-            if (ModelState.IsValid)
+            var shot = input.ToPhotoShoot();
+
+            if (await _context.Orders.FindAsync(shot.OrderId) == null)
             {
-                var shot = input.ToPhotoShoot();
-
-                _context.PhotoShoots.Add(shot);
-
-                _context.SaveChanges();
-
-                var output = new OutputPhotoShoot(shot, true);
-
-                return CreatedAtAction("GetById", new {id = shot.ResourceId}, output);
+                return NotFound();
             }
 
-            return new BadRequestObjectResult(ModelState);
+            await _context.PhotoShoots.AddAsync(shot);
+
+            await _context.SaveChangesAsync();
+
+            var output = new OutputPhotoShoot(shot, true);
+
+            return CreatedAtAction("GetById", new {id = shot.ResourceId}, output);
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        [SwaggerOperation("Updates a given photoshoot")]
+        [SwaggerResponse(200, "The updated photoshoot entry", typeof(OutputPhotoShoot))]
+        [SwaggerResponse(404, "The photoshoot with the given id was not found")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] InputPhotoShoot input)
+        {
+            var entry = await _context.PhotoShoots
+                .FirstOrDefaultAsync(row => row.ResourceId == id);
+
+            if (entry == null)
+            {
+                return NotFound();
+            }
+
+            var updated = input.ToPhotoShoot();
+
+            entry.OrderId = updated.OrderId;
+            entry.Address = updated.Address;
+            entry.Start = updated.Start;
+            entry.Duration = updated.Duration;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new OutputPhotoShoot(entry, true));
         }
     }
 }

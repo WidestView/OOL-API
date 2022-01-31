@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OOL_API.Data;
 using OOL_API.Services;
@@ -19,11 +20,14 @@ namespace OOL_API.Controllers
 
         [HttpGet]
         [Route("qr/{id}")]
-        public IActionResult GetQr(int id)
+        public async Task<IActionResult> GetQr(int id)
         {
-            var equipment = _context.Equipments.Find(id);
+            var equipment = await _context.Equipments.FindAsync(id);
 
-            if (equipment == null) return NotFound();
+            if (equipment == null)
+            {
+                return NotFound();
+            }
 
             return _handler.GenerateQrFor(equipment).ToFileResult();
         }

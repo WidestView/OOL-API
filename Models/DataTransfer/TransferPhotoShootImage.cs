@@ -7,6 +7,7 @@ namespace OOL_API.Models.DataTransfer
         public OutputPhotoShootImage(PhotoShootImage image, bool withReferences)
         {
             Id = image.Id;
+            PhotoshootId = image.PhotoShoot.ResourceId;
             PhotoShoot = withReferences && image.PhotoShoot != null
                 ? new OutputPhotoShoot(image.PhotoShoot, false)
                 : null;
@@ -14,6 +15,8 @@ namespace OOL_API.Models.DataTransfer
         }
 
         public Guid Id { get; }
+
+        public Guid PhotoshootId { get; }
 
         public OutputPhotoShoot PhotoShoot { get; }
 

@@ -1,4 +1,6 @@
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -20,26 +22,49 @@ namespace OOL_API.Services
             _context = context;
         }
 
-        public User? GetCurrentUser()
+        public async Task<User?> GetCurrentUser(CancellationToken token = default)
         {
             var httpUser = _httpContext.HttpContext.User;
 
             var username = httpUser.Claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sid);
 
-            if (username == null) return null;
+            if (username == null)
+            {
+                return null;
+            }
 
-            return _context.Users.Find(username.Value);
+            return await _context.Users.FindAsync(new object[] {username.Value}, token);
         }
 
-        public Employee? GetCurrentEmployee()
+        public async Task<Customer?> GetCurrentCustomer(CancellationToken token = default)
         {
-            var user = GetCurrentUser();
+            var user = await GetCurrentUser(token);
 
-            if (user == null) return null;
+            if (user == null)
+            {
+                return null;
+            }
 
-            var employee = _context.Employees
+            var customer = await _context.Customers
                 .Include(e => e.User)
-                .FirstOrDefault(e => e.UserId == user.Cpf);
+                .FirstOrDefaultAsync(e => e.UserId == user.Cpf, token);
+
+            return customer;
+        }
+
+        public async Task<Employee?> GetCurrentEmployee(CancellationToken token = default)
+        {
+            var user = await GetCurrentUser(token);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            var employee = await _context.Employees
+                .Include(e => e.User)
+                .Include(e => e.Occupation)
+                .FirstOrDefaultAsync(e => e.UserId == user.Cpf, token);
 
             return employee;
         }

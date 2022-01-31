@@ -31,14 +31,13 @@ namespace OOL_API.Data
 
         public DbSet<Order> Orders { get; set; }
 
-        public DbSet<EquipmentBorrowing> EquipmentBorrowings { get; set; }
+        public DbSet<EquipmentWithdraw> EquipmentWithdraws { get; set; }
 
         public DbSet<Equipment> Equipments { get; set; }
 
         public DbSet<EquipmentDetails> EquipmentDetails { get; set; }
 
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
-
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -49,7 +48,7 @@ namespace OOL_API.Data
             RelateTables(builder);
         }
 
-        private void NameTables(ModelBuilder builder) 
+        private void NameTables(ModelBuilder builder)
         {
             builder.Entity<Package>().ToTable("Package");
 
@@ -73,7 +72,7 @@ namespace OOL_API.Data
 
             builder.Entity<Order>().ToTable("Order");
 
-            builder.Entity<EquipmentBorrowing>().ToTable("EquipmentBorrowing");
+            builder.Entity<EquipmentWithdraw>().ToTable("EquipmentBorrowing");
 
             builder.Entity<Equipment>().ToTable("Equipment");
 
@@ -82,7 +81,7 @@ namespace OOL_API.Data
             builder.Entity<EquipmentType>().ToTable("EquipmentType");
         }
 
-        private void RelateTables(ModelBuilder builder) 
+        private void RelateTables(ModelBuilder builder)
         {
             builder.Entity<PhotoShootImage>()
                 .HasOne(image => image.PhotoShoot)
@@ -97,21 +96,9 @@ namespace OOL_API.Data
                 .IsRequired();
 
             builder.Entity<Order>()
-               .HasOne(order => order.Package)
-               .WithMany()
-               .HasForeignKey(order => order.PackageId)
-               .IsRequired();
-
-            builder.Entity<Order>()
-                .HasOne(order => order.Cart)
+                .HasOne(order => order.Package)
                 .WithMany()
-                .HasForeignKey(order => order.CartId)
-                .IsRequired();
-
-            builder.Entity<Customer>()
-                .HasOne(customer => customer.Cart)
-                .WithMany()
-                .HasForeignKey(customer => customer.CartId)
+                .HasForeignKey(order => order.PackageId)
                 .IsRequired();
 
             builder.Entity<Customer>()

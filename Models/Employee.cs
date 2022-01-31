@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace OOL_API.Models
@@ -11,12 +12,16 @@ namespace OOL_API.Models
 
         public AccessLevel AccessLevel { get; set; }
 
+        [Required]
         public string Gender { get; set; }
 
-        public string RG { get; set; }
+        [Required]
+        public string Rg { get; set; }
 
         public int OccupationId { get; set; }
         public Occupation Occupation { get; set; }
+
+        public List<PhotoShoot> ParticipatingPhotoShoots { get; set; }
     }
 
     public enum Tags

@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using OOL_API.Models;
 using OOL_API.Services;
 
@@ -17,32 +21,85 @@ namespace OOL_API.Data
             _settings = settings;
         }
 
-        public void Initialize(StudioContext context)
+        public async Task Initialize(StudioContext context)
         {
-            if (_settings.ResetDatabaseOnBoot) context.Database.EnsureDeleted();
+            if (_settings.ResetDatabaseOnBoot)
+            {
+                await context.Database.EnsureDeletedAsync();
+            }
 
-            context.Database.EnsureCreated();
+            var creator = context.Database.GetService<IRelationalDatabaseCreator>();
 
-            var alreadyInitialized = context.Packages.Any();
+            // We first check if the database exists before initializing because
+            // it can crash if we don't.
 
-            if (alreadyInitialized) return;
+            if (!await creator.ExistsAsync())
+            {
+                await context.Database.EnsureCreatedAsync();
 
-            CreatePackages(context);
+                await CreatePackages(context);
 
-            var users = CreateUsers(context);
+                await CreateUsers(context);
 
-            CreateEmployees(context, users);
+                await CreateEmployees(context);
 
-            CreateCustomers(context);
+                await CreateCustomers(context);
 
-            CreateOrders(context);
+                await CreateOrders(context);
 
-            CreatePhotoshoots(context);
+                await CreatePhotoshoots(context);
 
-            CreateEquipments(context);
+                await CreateEquipments(context);
+
+                await CreateWithdraw(context);
+            }
         }
 
-        private void CreatePackages(StudioContext context)
+        private async Task CreateWithdraw(StudioContext context)
+        {
+            var employee = await context.Employees.OrderBy(row => row.UserId).FirstAsync();
+
+            var equipment = await context.Equipments.OrderBy(row => row.Id).FirstAsync();
+            var equipment2 = await context.Equipments.OrderBy(row => row.Id).Skip(1).FirstAsync();
+
+            var photoshoot = await context.PhotoShoots.OrderBy(row => row.Id).FirstAsync();
+            var photoshoot2 = await context.PhotoShoots.OrderBy(row => row.Id).Skip(1).FirstAsync();
+
+            var withdraw = new EquipmentWithdraw
+            {
+                WithdrawDate = DateTime.Now,
+                ExpectedDevolutionDate = DateTime.Now + TimeSpan.FromHours(5),
+                EffectiveDevolutionDate = DateTime.Now + TimeSpan.FromHours(3),
+                Employee = employee,
+                EmployeeCpf = employee.UserId,
+                Equipment = equipment,
+                EquipmentId = equipment.Id,
+                PhotoShootId = photoshoot.Id,
+                PhotoShoot = photoshoot
+            };
+
+            var date = DateTime.Now + TimeSpan.FromDays(2);
+
+            var withdraw2 = new EquipmentWithdraw
+            {
+                WithdrawDate = date,
+                ExpectedDevolutionDate = date + TimeSpan.FromHours(5),
+                EffectiveDevolutionDate = date + TimeSpan.FromHours(3),
+                Employee = employee,
+                EmployeeCpf = employee.UserId,
+                Equipment = equipment2,
+                EquipmentId = equipment2.Id,
+                PhotoShootId = photoshoot2.Id,
+                PhotoShoot = photoshoot2
+            };
+
+            await context.EquipmentWithdraws.AddAsync(withdraw);
+            await context.EquipmentWithdraws.AddAsync(withdraw2);
+
+            await context.SaveChangesAsync();
+        }
+
+        private async Task CreatePackages(StudioContext context)
         {
             var packages = new[]
             {
@@ -50,8 +107,8 @@ namespace OOL_API.Data
                 {
                     Name = "Premium",
                     Description =
-                        "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
-                    BaseValue = 50.00m,
+                        "Pacote com um ensaio fotográfico de grande flexibilidade",
+                    BaseValue = 70.00m,
                     PricePerPhoto = 2.50m,
                     ImageQuantity = null,
                     QuantityMultiplier = 25,
@@ -62,22 +119,37 @@ namespace OOL_API.Data
                 {
                     Name = "Você Modelo!",
                     Description =
-                        "Pacote com um ensaio fotográfico e a disponibilidade das fotos por acesso digital a nossa plataforma!",
-                    BaseValue = 200.0m,
-                    PricePerPhoto = 0.00m,
-                    ImageQuantity = 200,
+                        "Pacote onde você é a estrela da vez",
+                    BaseValue = 100.0m,
+                    PricePerPhoto = 5.00m,
+                    ImageQuantity = 15,
                     QuantityMultiplier = null,
                     MaxIterations = null,
                     Available = true
+                },
+                new Package
+                {
+                    Name = "Casamento Fiel",
+                    Description =
+                        "Todas as fotos para seu casamento",
+                    BaseValue = 150.0m,
+                    PricePerPhoto = 10.00m,
+                    ImageQuantity = null,
+                    QuantityMultiplier = 10,
+                    MaxIterations = 5,
+                    Available = false
                 }
             };
 
-            foreach (var p in packages) context.Packages.Add(p);
+            foreach (var p in packages)
+            {
+                await context.Packages.AddAsync(p);
+            }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        private User[] CreateUsers(StudioContext context)
+        private async Task CreateUsers(StudioContext context)
         {
             var users = new[]
             {
@@ -87,152 +159,240 @@ namespace OOL_API.Data
                     BirthDate = DateTime.Now - TimeSpan.FromDays(6570),
                     Cpf = _settings.DefaultUserCpf,
                     Email = _settings.DefaultUserEmail,
-                    Name = "bob",
+                    Name = "Giovanni Sunner",
                     Password = _hash.Of(_settings.DefaultUserPassword),
-                    Phone = "40028922",
+                    Phone = "11940028922",
                     SocialName = null
                 },
                 new User
                 {
-                    Active = false,
+                    Active = true,
                     BirthDate = DateTime.Now - TimeSpan.FromDays(14600),
                     Cpf = _settings.SuperUserCpf,
                     Email = _settings.SuperUserEmail,
-                    Name = "super bob",
+                    Name = "Silva Gunther",
                     Password = _hash.Of(_settings.SuperUserPassword),
-                    Phone = "0101010101",
-                    SocialName = "root sudoer"
+                    Phone = "11910101010",
+                    SocialName = "Gilva Sunther"
                 }
             };
 
-            foreach (var user in users) context.Users.Add(user);
-            context.SaveChanges();
-            return users;
+            foreach (var user in users)
+            {
+                await context.Users.AddAsync(user);
+            }
+
+            await context.SaveChangesAsync();
         }
 
-        private void CreateEmployees(StudioContext context, IEnumerable<User> users)
+        private async Task CreateEmployees(StudioContext context)
         {
             var occupation = new Occupation
             {
-                Description = "Sleep",
-                Name = "Idk"
+                Description = "Um fotógrafo profissional no mercado",
+                Name = "Fotógrafo Regular"
             };
 
-            context.Occupations.Add(occupation);
-            context.SaveChanges();
+            var occupation2 = new Occupation
+            {
+                Description = "Um funcionário dedicado à segurança do estabelecimento",
+                Name = "Segurança Regular"
+            };
+
+            await context.Occupations.AddAsync(occupation);
+            await context.Occupations.AddAsync(occupation2);
+            await context.SaveChangesAsync();
 
             var employees = new[]
             {
                 new Employee
                 {
                     AccessLevel = AccessLevel.Default,
-                    Gender = "Attack Helicopter",
+                    Gender = "Masculino",
+                    Rg = "102010102010",
                     OccupationId = occupation.Id
                 },
                 new Employee
                 {
                     AccessLevel = AccessLevel.Sudo,
-                    Gender = "IEEE 754 Standard for Floating-Point Arithmetic",
+                    Gender = "Masculino",
+                    Rg = "332330303010",
                     OccupationId = occupation.Id
                 }
             };
 
-            foreach (var (employee, user) in employees.Zip(users))
+            foreach (var (employee, user) in employees.Zip(await context.Users.ToListAsync()))
             {
                 employee.UserId = user.Cpf;
 
-                context.Employees.Add(employee);
+                await context.Employees.AddAsync(employee);
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        private void CreateCustomers(StudioContext context)
+        private async Task CreateCustomers(StudioContext context)
         {
-            var user = context.Users.First();
+            var user = await context.Users.OrderBy(row => row.Cpf).FirstAsync();
 
             var cart = new Cart();
-            context.Carts.Add(cart); //DEFAULT VALUES EXCEPTION, MUST FIX
-            context.SaveChanges();
+
+            await context.Carts.AddAsync(cart);
+            await context.SaveChangesAsync();
 
             var customers = new[]
             {
                 new Customer
                 {
-                    UserId = user.Cpf,
-                    CartId = cart.Id
+                    UserId = user.Cpf
                 }
             };
 
-            foreach (var customer in customers) context.Customers.Add(customer);
+            foreach (var customer in customers)
+            {
+                await context.Customers.AddAsync(customer);
+            }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        private void CreateOrders(StudioContext context)
+        private async Task CreateOrders(StudioContext context)
         {
-            var customer = context.Customers.First();
-            var package = context.Packages.First();
+            var customer = await context.Customers.OrderBy(row => row.UserId).FirstAsync();
+            var package = await context.Packages.OrderBy(row => row.Id).FirstAsync();
+            var package2 = await context.Packages.OrderBy(row => row.Id).Skip(1).FirstAsync();
 
             var order = new Order
             {
-                CartId = customer.CartId,
-                PackageId = package.Id
+                PackageId = package.Id,
+                CustomerId = customer.UserId,
+                BuyTime = DateTime.Now,
+                ImageQuantity = 10,
+                Price = 50
             };
 
-            context.Orders.Add(order);
-            context.SaveChanges();
+            var order2 = new Order
+            {
+                PackageId = package2.Id,
+                CustomerId = customer.UserId,
+                BuyTime = DateTime.Now,
+                ImageQuantity = 10,
+                Price = 50
+            };
+
+            await context.Orders.AddAsync(order);
+            await context.Orders.AddAsync(order2);
+            await context.SaveChangesAsync();
         }
 
-        private void CreatePhotoshoots(StudioContext context)
+        private async Task CreatePhotoshoots(StudioContext context)
         {
-            var order = context.Orders.First();
+            var order = await context.Orders.OrderBy(row => row.Id).FirstAsync();
+
+            var employee = await context.Employees.OrderBy(row => row.UserId).FirstAsync();
 
             var shoots = new[]
             {
                 new PhotoShoot
                 {
-                    Address = "localhost avenue",
+                    Address = "Avenida Localhost",
                     Duration = TimeSpan.FromHours(1),
+                    Start = DateTime.Now + TimeSpan.FromHours(2),
                     OrderId = order.Id,
-                    ResourceId = Guid.Parse("5a60a77f-e51b-4aa6-7b3c-08d94570814c")
+                    Employees = new List<Employee> {employee}
                 },
 
                 new PhotoShoot
                 {
-                    Address = "127001 street",
+                    Address = "Rua 127.0.0.1",
                     Duration = TimeSpan.FromHours(1),
-                    OrderId = order.Id
+                    Start = DateTime.Now - TimeSpan.FromHours(1),
+                    OrderId = order.Id,
+                    Employees = new List<Employee> {employee}
+                },
+
+                new PhotoShoot
+                {
+                    Address = "Rua Ruanda",
+                    Duration = TimeSpan.FromHours(1),
+                    Start = DateTime.Now - TimeSpan.FromMinutes(30),
+                    OrderId = order.Id,
+                    Employees = new List<Employee> {employee}
+                },
+
+                new PhotoShoot
+                {
+                    Address = "Condomínio 0.0.0.0",
+                    Duration = TimeSpan.FromHours(1),
+                    Start = DateTime.Now + TimeSpan.FromDays(7),
+                    OrderId = order.Id,
+                    Employees = new List<Employee> {employee}
+                },
+
+                new PhotoShoot
+                {
+                    Address = "Vila ::1",
+                    Duration = TimeSpan.FromHours(1),
+                    Start = DateTime.Now + TimeSpan.FromDays(3),
+                    OrderId = order.Id,
+                    Employees = new List<Employee> {employee}
                 }
             };
 
-            foreach (var photoShoot in shoots) context.PhotoShoots.Add(photoShoot);
+            foreach (var photoShoot in shoots)
+            {
+                await context.PhotoShoots.AddAsync(photoShoot);
+            }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        private void CreateEquipments(StudioContext context)
+        private async Task CreateEquipments(StudioContext context)
         {
-            var type = new EquipmentType
+            var types = new[]
             {
-                Name = "Good Camera",
-                Description = "A high quality camera"
+                new EquipmentType
+                {
+                    Name = "Camera boa",
+                    Description = "Uma câmera de alta qualidade"
+                },
+
+                new EquipmentType
+                {
+                    Name = "Armazenamento",
+                    Description = "Uma item de armazenamento"
+                }
             };
 
-            context.EquipmentTypes.Add(type);
+            foreach (var t in types)
+            {
+                await context.EquipmentTypes.AddAsync(t);
+            }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
+
+            var camera = types.OrderBy(row => row.Id).First();
+            var storage = types.OrderBy(row => row.Id).Skip(1).First();
 
             var details = new EquipmentDetails
             {
-                Name = "Kodak Camera 0xIDK",
+                Name = "Camera Kodak 0xIDK",
                 Price = 400.00m,
-                TypeId = type.Id
+                TypeId = camera.Id
             };
 
-            context.SaveChanges();
+            var details2 = new EquipmentDetails
+            {
+                Name = "HDD 1TB",
+                Price = 280.00m,
+                TypeId = storage.Id
+            };
 
-            context.EquipmentDetails.Add(details);
+
+            await context.EquipmentDetails.AddAsync(details);
+            await context.EquipmentDetails.AddAsync(details2);
+
+            await context.SaveChangesAsync();
 
             var equipments = new[]
             {
@@ -241,12 +401,22 @@ namespace OOL_API.Data
                     Available = true,
                     Details = details,
                     DetailsId = details.Id
+                },
+
+                new Equipment
+                {
+                    Available = false,
+                    Details = details2,
+                    DetailsId = details2.Id
                 }
             };
 
-            foreach (var equipment in equipments) context.Equipments.Add(equipment);
+            foreach (var equipment in equipments)
+            {
+                await context.Equipments.AddAsync(equipment);
+            }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 }

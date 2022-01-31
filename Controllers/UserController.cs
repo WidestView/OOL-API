@@ -1,7 +1,15 @@
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using OOL_API.Data;
 using OOL_API.Models;
+using OOL_API.Models.DataTransfer;
 using OOL_API.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 #nullable enable
 
@@ -11,48 +19,160 @@ namespace OOL_API.Controllers
     [Route("api/user")]
     public class UserController : ControllerBase
     {
+        private readonly StudioContext _context;
         private readonly CurrentUserInfo _currentUserInfo;
+        private readonly OutputUserHandler _outputHandler;
+        private readonly IPasswordHash _passwordHash;
         private readonly IPictureStorage<User, string> _pictureStorage;
 
         public UserController(
             CurrentUserInfo currentUserInfo,
-            IPictureStorage<User, string> pictureStorage
+            StudioContext context,
+            IPictureStorage<User, string> pictureStorage,
+            IPasswordHash passwordHash
         )
         {
             _currentUserInfo = currentUserInfo;
+            _context = context;
             _pictureStorage = pictureStorage;
+            _outputHandler = new OutputUserHandler();
+            _passwordHash = passwordHash;
+        }
+
+        [HttpGet]
+        [Route("greet")]
+        public async Task<IActionResult> Greet(CancellationToken token = default)
+        {
+            var employee = await _currentUserInfo.GetCurrentEmployee(token);
+
+            if (employee != null)
+            {
+                return Ok(_outputHandler.OutputFor(employee));
+            }
+
+            var user = await _currentUserInfo.GetCurrentUser(token);
+
+            if (user != null)
+            {
+                return Ok(_outputHandler.OutputFor(user));
+            }
+
+            return Unauthorized();
         }
 
         [HttpGet]
         [Route("picture")]
-        public IActionResult GetPicture()
+        public async Task<IActionResult> GetPicture(CancellationToken token = default)
         {
-            var user = _currentUserInfo.GetCurrentUser();
+            var user = await _currentUserInfo.GetCurrentUser(token);
 
-            if (user == null) return Unauthorized();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
-            var content = _pictureStorage.GetPicture(user.Cpf);
+            var content = await _pictureStorage.GetPicture(user.Cpf, token);
 
-            if (content == null) return NotFound();
+            if (content == null)
+            {
+                return NotFound();
+            }
 
             return File(content, "image/jpeg");
         }
 
         [HttpPost]
-        [Route("upload-image")]
-        public IActionResult Upload([FromForm] IFormFile file)
+        [AllowAnonymous]
+        [SwaggerOperation("Registers a new user")]
+        [SwaggerResponse(200, "The created User", typeof(OutputUser))]
+        [SwaggerResponse(409, "Somethig went wrong on creating user")]
+        public async Task<IActionResult> PostUser(InputUser inputUser,
+            [FromServices] IOptions<ApiBehaviorOptions> apiBehaviorOptions)
         {
-            var user = _currentUserInfo.GetCurrentUser();
+            inputUser.HashPassword(_passwordHash);
+            var user = inputUser.ToModel();
 
-            if (user == null) return Unauthorized();
+            if (await CpfExists(user.Cpf))
+            {
+                ModelState.AddModelError(nameof(user.Cpf), "User Cpf already in use");
+            }
 
-            if (file.ContentType != "image/jpeg") return BadRequest();
+            if (await EmailExists(user.Email))
+            {
+                ModelState.AddModelError(nameof(user.Email), "User Email already in use");
+            }
 
-            using var stream = file.OpenReadStream();
+            if (!ModelState.IsValid)
+            {
+                return apiBehaviorOptions.Value.InvalidModelStateResponseFactory(ControllerContext);
+            }
 
-            _pictureStorage.PostPicture(stream, user);
+            await _context.Users.AddAsync(user);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(_outputHandler.OutputFor(user));
+        }
+
+        [HttpPost]
+        [Route("upload-image")]
+        public async Task<IActionResult> Upload([FromForm] IFormFile file)
+        {
+            var user = await _currentUserInfo.GetCurrentUser();
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            if (file.ContentType != "image/jpeg")
+            {
+                return BadRequest();
+            }
+
+            await using var stream = file.OpenReadStream();
+
+            await _pictureStorage.PostPicture(stream, user);
 
             return CreatedAtAction("GetPicture", "");
+        }
+
+        [AcceptVerbs("GET", "POST")]
+        [Route("verifyemail")]
+        public async Task<IActionResult> VerifyEmail(string email)
+        {
+            if (await EmailExists(email))
+            {
+                var result = $"Email {email} is already in use.";
+                return Conflict(result);
+            }
+
+            return Ok(true);
+        }
+
+        [AcceptVerbs("GET", "POST")]
+        [Route("verifycpf")]
+        public async Task<IActionResult> VerifyCpf(string cpf)
+        {
+            if (await CpfExists(cpf))
+            {
+                var result = $"O CPF {cpf} já está em uso";
+
+                return Conflict(result);
+            }
+
+            return Ok(true);
+        }
+
+        private async Task<bool> CpfExists(string cpf)
+        {
+            return await _context.Users.FirstOrDefaultAsync(user =>
+                user.Cpf == cpf.Replace(".", "").Replace("-", "")) != null;
+        }
+
+        private async Task<bool> EmailExists(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(user => user.Email == email) != null;
         }
     }
 }

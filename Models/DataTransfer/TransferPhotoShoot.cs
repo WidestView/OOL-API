@@ -7,16 +7,16 @@ namespace OOL_API.Models.DataTransfer
 {
     public class InputPhotoShoot
     {
-        [Required]
+        [Required(ErrorMessage = "O pedido é obrigatório")]
         public int OrderId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "O endereço é obrigatório")]
         public string Address { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "A data de início é obrigatória")]
         public DateTime Start { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "A duração é obrigatória")]
         public uint DurationMinutes { get; set; }
 
         public PhotoShoot ToPhotoShoot()
@@ -39,14 +39,14 @@ namespace OOL_API.Models.DataTransfer
             OrderId = photoShoot.OrderId;
             Address = photoShoot.Address;
             Start = photoShoot.Start;
-            DurationMinutes = (uint) photoShoot.Duration.Minutes;
+            DurationMinutes = (uint) photoShoot.Duration.TotalMinutes;
 
             Images = withReferences && photoShoot.Images != null
                 ? photoShoot.Images.Select(image => new OutputPhotoShootImage(image, false))
                 : null;
         }
 
-        public Guid Id { get; } = Guid.NewGuid();
+        public Guid Id { get; }
 
         public int OrderId { get; }
 

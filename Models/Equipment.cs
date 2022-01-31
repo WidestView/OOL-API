@@ -4,24 +4,29 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OOL_API.Models
 {
-    public class EquipmentBorrowing
+    public class EquipmentWithdraw
     {
         [Key]
         public int Id { get; set; }
 
-        public DateTime Takeout { get; set; }
+        public DateTime WithdrawDate { get; set; }
 
-        public DateTime PredictedDevolution { get; set; }
-
-        public DateTime DefinitiveDevolution { get; set; }
+        public DateTime ExpectedDevolutionDate { get; set; }
+        public DateTime? EffectiveDevolutionDate { get; set; }
 
         public int PhotoShootId { get; set; }
+
+        [Required]
         public PhotoShoot PhotoShoot { get; set; }
 
-        public string UserCpf { get; set; }
-        public User User { get; set; }
+        public string EmployeeCpf { get; set; }
+
+        [Required]
+        public Employee Employee { get; set; }
 
         public int EquipmentId { get; set; }
+
+        [Required]
         public Equipment Equipment { get; set; }
     }
 
@@ -35,6 +40,8 @@ namespace OOL_API.Models
         public int DetailsId { get; set; }
 
         public EquipmentDetails Details { get; set; }
+
+        public bool IsArchived { get; set; } = false;
     }
 
     public class EquipmentDetails
@@ -48,9 +55,12 @@ namespace OOL_API.Models
 
         public int TypeId { get; set; }
 
+        [Required]
         public EquipmentType Type { get; set; }
 
         public IEnumerable<Equipment> Equipments { get; set; }
+
+        public bool IsArchived { get; set; }
     }
 
     public class EquipmentType
@@ -62,5 +72,7 @@ namespace OOL_API.Models
         public string Name { get; set; }
 
         public string Description { get; set; }
+
+        public bool IsArchived { get; set; } = false;
     }
 }

@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 
 namespace OOL_API.Services
@@ -15,26 +17,28 @@ namespace OOL_API.Services
 
         private string _directory;
 
+        public PictureStorageDelegate(IWebHostEnvironment environment)
+        {
+            _environment = environment;
+        }
+
         public string Directory
         {
             set
             {
-                _directory = Path.Combine("Images", value);
-                
+                _directory = Path.Combine(path1: "Images", value);
+
                 System.IO.Directory.CreateDirectory(_directory);
             }
         }
 
-        public PictureStorageDelegate(IWebHostEnvironment environment)
-            => _environment = environment;
-
-        public byte[] GetPicture(string id)
+        public async Task<byte[]> GetPicture(string id, CancellationToken token = default)
         {
             var path = ResolveImagePath(id);
 
             try
             {
-                return File.ReadAllBytes(path);
+                return await File.ReadAllBytesAsync(path, token);
             }
             catch (FileNotFoundException)
             {
@@ -42,21 +46,21 @@ namespace OOL_API.Services
             }
             catch (DirectoryNotFoundException)
             {
-                Console.WriteLine($"Directory solicited for {path} not found");
+                Console.WriteLine($"Directory asked for {path} not found");
             }
 
             return null;
         }
 
-        public void PostPicture(Stream stream, string id)
+        public async Task PostPicture(Stream stream, string id)
         {
             var path = ResolveImagePath(id);
 
-            using var file = File.OpenWrite(path);
+            await using var file = File.OpenWrite(path);
 
-            file.Seek(0, SeekOrigin.Begin);
+            file.Seek(offset: 0, SeekOrigin.Begin);
 
-            stream.CopyTo(file);
+            await stream.CopyToAsync(file);
         }
 
         private string ResolveImagePath(string image)
@@ -68,8 +72,7 @@ namespace OOL_API.Services
                 );
             }
 
-            return Path.Combine(_environment.ContentRootPath, _directory, $"{image}.jpg");
+            return Path.Combine(_environment.ContentRootPath, _directory, path3: $"{image}.jpg");
         }
     }
-
 }

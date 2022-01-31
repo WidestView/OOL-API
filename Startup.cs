@@ -133,6 +133,11 @@ namespace OOL_API
                 pkg => pkg.Id
             ));
 
+            services.AddScoped(StorageOf<EquipmentDetails, int>(
+                "EquipmentDetails_Images",
+                details => details.Id
+            ));
+
             services.AddScoped(
                 StorageOf<User, string>(
                     "User_Images",
@@ -182,6 +187,12 @@ namespace OOL_API
                         new string[] { }
                     }
                 });
+
+                // allows nested classes to have the same name
+                // but different schema ids
+                c.CustomSchemaIds(type => (type.DeclaringType?.Name ?? "") + type.Name);
+
+                c.EnableAnnotations();
             });
         }
 
@@ -204,7 +215,10 @@ namespace OOL_API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
             app.UseCors("ApiCorsPolicy");
 
